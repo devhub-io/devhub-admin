@@ -1,0 +1,10 @@
+image: node:8.0.0
+
+before_script:
+  - npm install -g cnpm --registry=https://registry.npm.taobao.org
+  - cnpm install
+
+test:
+  script:
+    - npm run build
+    - ./node_modules/.bin/eslint src
