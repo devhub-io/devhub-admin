@@ -80,12 +80,36 @@ export const constantRouterMap = [
   {
     path: '/content',
     component: Layout,
-    name: 'Content',
+    name: 'Base',
     redirect: '/content/site',
-    meta: { title: 'Content', icon: 'documentation' },
+    meta: { title: 'Base', icon: 'documentation' },
     children: [
       { path: '/content/repos', component: () => import('@/views/content/site'), name: 'repos', meta: { title: 'Repos' }},
-      { path: '/content/developers', component: () => import('@/views/content/site'), name: 'developer', meta: { title: 'Developer' }}
+      { path: '/content/developers', component: () => import('@/views/content/site'), name: 'developers', meta: { title: 'Developers' }},
+      { path: '/content/sites', component: () => import('@/views/content/site'), name: 'sites', meta: { title: 'Sites' }},
+      { path: '/content/wiki', component: () => import('@/views/content/site'), name: 'wiki', meta: { title: 'Wiki' }}
+    ]
+  },
+  {
+    path: '/ecosystems',
+    component: Layout,
+    name: 'Ecosystems',
+    redirect: '/ecosystems/index',
+    meta: { title: 'Ecosystems', icon: 'tree' },
+    children: [
+      { path: '/ecosystem/index', component: () => import('@/views/ecosystem/index'), name: 'ecosystems_index', meta: { title: 'List' }},
+      { path: '/ecosystem/demo', component: () => import('@/views/ecosystem/index'), name: 'vvv', meta: { title: '__' }}
+    ]
+  },
+  {
+    path: '/workflow',
+    component: Layout,
+    name: 'workflow',
+    redirect: '/workflow/index',
+    meta: { title: 'Workflow', icon: 'guide' },
+    children: [
+      { path: '/workflow/index', component: () => import('@/views/workflow/index'), name: 'workflow_index', meta: { title: 'List' }},
+      { path: '/workflow/demo', component: () => import('@/views/workflow/index'), name: 'aff', meta: { title: '__' }}
     ]
   },
   {
