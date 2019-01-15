@@ -78,16 +78,16 @@ export const constantRouterMap = [
     ]
   },
   {
-    path: '/content',
+    path: '/base',
     component: Layout,
     name: 'Base',
-    redirect: '/content/site',
+    redirect: '/base/repos',
     meta: { title: 'Base', icon: 'documentation' },
     children: [
-      { path: '/content/repos', component: () => import('@/views/content/site'), name: 'repos', meta: { title: 'Repos' }},
-      { path: '/content/developers', component: () => import('@/views/content/site'), name: 'developers', meta: { title: 'Developers' }},
-      { path: '/content/sites', component: () => import('@/views/content/site'), name: 'sites', meta: { title: 'Sites' }},
-      { path: '/content/wiki', component: () => import('@/views/content/site'), name: 'wiki', meta: { title: 'Wiki' }}
+      { path: '/base/repos', component: () => import('@/views/base/repos'), name: 'repos', meta: { title: 'Repos' }},
+      { path: '/base/developers', component: () => import('@/views/base/developers'), name: 'developers', meta: { title: 'Developers' }},
+      { path: '/base/sites', component: () => import('@/views/content/site'), name: 'sites', meta: { title: 'Sites' }},
+      { path: '/base/wiki', component: () => import('@/views/content/site'), name: 'wiki', meta: { title: 'Wiki' }}
     ]
   },
   {
