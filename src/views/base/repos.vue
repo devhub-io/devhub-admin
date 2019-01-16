@@ -219,7 +219,7 @@ export default {
       }
     },
 
-    // 获取列表
+    // List
     getRepos: function() {
       const param = {
         page: this.page,
@@ -243,7 +243,6 @@ export default {
       })
     },
 
-    // 改变每页条数
     handleSizeChange: function(size) {
       this.pageSize = size
       if ((this.page - 1) * size <= this.total) {
@@ -251,7 +250,6 @@ export default {
       }
     },
 
-    // 改变当前页
     handleCurrentChange: function(page) {
       this.page = page
       this.getRepos()

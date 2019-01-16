@@ -23,3 +23,27 @@ export function editRepos(params) {
     data: params
   })
 }
+
+export function getDevelopers(params) {
+  return request({
+    url: `/admin/developers`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function switchDeveloper(params) {
+  return request({
+    url: `/admin/developer/switch`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function editDeveloper(params) {
+  return request({
+    url: `/admin/developer/edit`,
+    method: 'post',
+    data: params
+  })
+}
