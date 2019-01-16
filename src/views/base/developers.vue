@@ -194,18 +194,6 @@ export default {
       return '--'
     },
 
-    // 验证订单状态
-    checkOrderStatus: function(selections) {
-      let result = false
-      for (const i in selections) {
-        if (selections[i].goods_type === 3) {
-          result = true
-          break
-        }
-      }
-      return result
-    },
-
     handleSelect: function(selection, row) {
       this.tableSelections = selection
     },

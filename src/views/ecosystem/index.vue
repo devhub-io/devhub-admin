@@ -22,6 +22,9 @@
         <el-form-item>
           <el-button @click="resetForm('searchForm')">Clear</el-button>
         </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="el-icon-plus" @click="showCreate">Create</el-button>
+        </el-form-item>
       </el-form>
     </el-col>
 
@@ -83,6 +86,24 @@
     <!--Edit-->
     <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title}`" size="tiny">
       <el-form ref="paymentOrderForm" :model="editForm" label-width="120px">
+        <el-form-item label="Title" prop="title">
+          <el-input v-model="editForm.title" type="text"/>
+        </el-form-item>
+        <el-form-item label="Slug" prop="slug">
+          <el-input v-model="editForm.slug" type="text"/>
+        </el-form-item>
+        <el-form-item label="Homepage" prop="homepage">
+          <el-input v-model="editForm.homepage" type="url"/>
+        </el-form-item>
+        <el-form-item label="Github" prop="github">
+          <el-input v-model="editForm.github" type="url"/>
+        </el-form-item>
+        <el-form-item label="Wiki" prop="wiki">
+          <el-input v-model="editForm.wiki" type="url"/>
+        </el-form-item>
+        <el-form-item label="Sort" prop="sort">
+          <el-input v-model="editForm.sort" type="number"/>
+        </el-form-item>
         <el-form-item label="Status" prop="status">
           <el-select v-model="editForm.status" clearable placeholder="Select...">
             <el-option
@@ -98,11 +119,24 @@
         <el-button :loading="editLoading" type="primary" @click="editSubmit">Submit</el-button>
       </span>
     </el-dialog>
+
+    <!--Create-->
+    <el-dialog :visible.sync="createVisible" title="Create" size="tiny">
+      <el-form ref="paymentOrderForm" :model="createForm" label-width="120px">
+        <el-form-item label="Title" prop="title">
+          <el-input v-model="createForm.title" type="text"/>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="createVisible = false">Cancel</el-button>
+        <el-button :loading="createLoading" type="primary" @click="createSubmit">Submit</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getEcosystems, switchEcosystem, editEcosystem } from '@/api/ecosystem'
+import { getEcosystems, switchEcosystem, editEcosystem, createEcosystem } from '@/api/ecosystem'
 
 export default {
   data() {
@@ -146,7 +180,14 @@ export default {
       },
       editVisible: false,
       editLoading: false,
-      editRow: {}
+      editRow: {},
+
+      // Create
+      createForm: {
+        title: ''
+      },
+      createVisible: false,
+      createLoading: false
     }
   },
   mounted() {
@@ -169,18 +210,6 @@ export default {
         }
       }
       return '--'
-    },
-
-    // 验证订单状态
-    checkOrderStatus: function(selections) {
-      let result = false
-      for (const i in selections) {
-        if (selections[i].goods_type === 3) {
-          result = true
-          break
-        }
-      }
-      return result
     },
 
     handleSelect: function(selection, row) {
@@ -255,20 +284,34 @@ export default {
 
     editSubmit() {
       if (this.editForm.status !== '') {
-        const params = {
-          id: this.editRow.id,
-          status: this.editForm.status
-        }
+        const params = Object.assign({}, this.editForm)
+        this.editLoading = true
         editEcosystem(params).then(() => {
           this.editVisible = false
+          this.editLoading = false
           this.getEcosystems()
         })
       }
     },
     showEdit(row) {
-      this.editForm.status = ''
-      this.editRow = row
+      this.editForm = row
       this.editVisible = true
+    },
+    showCreate() {
+      this.createVisible = true
+    },
+    createSubmit() {
+      if (this.createForm.title !== '') {
+        const params = {
+          title: this.createForm.title
+        }
+        this.createLoading = true
+        createEcosystem(params).then(() => {
+          this.createVisible = false
+          this.createLoading = false
+          this.getEcosystems()
+        })
+      }
     }
   }
 }

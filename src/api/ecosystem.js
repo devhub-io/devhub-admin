@@ -23,3 +23,11 @@ export function editEcosystem(params) {
     data: params
   })
 }
+
+export function createEcosystem(params) {
+  return request({
+    url: `/admin/ecosystem/create`,
+    method: 'post',
+    data: params
+  })
+}
