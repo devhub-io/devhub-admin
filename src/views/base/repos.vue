@@ -3,15 +3,12 @@
 
     <!--Tools-->
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-      <el-form ref="searchFrom" :model="searchFrom" :inline="true" >
-        <el-form-item label="Keyword" prop="keyword">
-          <el-input v-model="searchFrom.keyword" placeholder="Input..."/>
-        </el-form-item>
+      <el-form ref="searchForm" :model="searchForm" :inline="true" >
         <el-form-item label="Slug" prop="slug">
-          <el-input v-model="searchFrom.slug" placeholder="Input..."/>
+          <el-input v-model="searchForm.slug" placeholder="Input..."/>
         </el-form-item>
         <el-form-item label="Status" prop="status">
-          <el-select v-model="searchFrom.status" clearable placeholder="Select...">
+          <el-select v-model="searchForm.status" clearable placeholder="Select...">
             <el-option
               v-for="item in status_lists"
               :key="item.value"
@@ -20,22 +17,19 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="getEcosystems">Query</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="getRepos">Query</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button @click="resetForm('searchFrom')">Clear</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-button size="mini" type="primary" @click="handelLog('order')">Logs</el-button>
+          <el-button @click="resetForm('searchForm')">Clear</el-button>
         </el-form-item>
       </el-form>
     </el-col>
 
     <!--Sort-->
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-      <el-form ref="sortFrom" :model="searchFrom" :inline="true" >
-        <el-form-item label="Sort" prop="type">
-          <el-select v-model="sortFrom.type" clearable placeholder="Select...">
+      <el-form ref="sortForm" :model="sortForm" :inline="true" >
+        <el-form-item label="Sort" prop="sort_type">
+          <el-select v-model="sortForm.sort_type" clearable placeholder="Select..." @change="sort">
             <el-option
               v-for="item in sort_type"
               :key="item.value"
@@ -47,23 +41,40 @@
     </el-col>
 
     <!--List-->
-    <el-table v-loading="tableLoading" ref="multipleTable" :data="orderList" stripe style="width: 100%" @select="handleSelect" @select-all="handleSelectAll">
+    <el-table v-loading="tableLoading" ref="multipleTable" :data="list" stripe style="width: 100%" @select="handleSelect" @select-all="handleSelectAll">
       <el-table-column type="selection" width="50"/>
-      <el-table-column prop="id" label="#" width="50" />
-      <el-table-column prop="title" label="Title" width="100" />
-      <el-table-column prop="cover" label="Cover" width="100" />
-      <el-table-column prop="category_id" label="Category" width="100" />
-      <el-table-column prop="language" label="Language" width="100" />
-      <el-table-column prop="slug" label="Slug" width="50" />
-      <el-table-column prop="statistics" label="Statistics" min-width="150"/>
-      <el-table-column prop="status" label="Status" align="center" width="150" />
-      <el-table-column label="Operating" width="180">
+      <el-table-column prop="id" label="#" width="100" />
+      <el-table-column prop="cover" label="Cover" width="150">
+        <template slot-scope="scope">
+          <img :src="scope.row.cover" alt="" width="100">
+        </template>
+      </el-table-column>
+      <el-table-column prop="title" label="Title" width="200" />
+      <el-table-column prop="statistics" label="Statistics" width="200">
+        <template slot-scope="scope">
+          <div>stargazers_count: {{ scope.row.stargazers_count }}</div>
+          <div>view_number: {{ scope.row.view_number }}</div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="time" label="Time" width="200">
+        <template slot-scope="scope">
+          <div>fetched_at</div>
+          <div>{{ scope.row.fetched_at }}</div>
+          <div>analytics_at</div>
+          <div>{{ scope.row.analytics_at || '--' }}</div>
+        </template>
+      </el-table-column>
+      <el-table-column :formatter="formatStatus" prop="status" label="Status" align="center" width="100"/>
+      <el-table-column prop="language" label="Language" align="center" width="120" />
+      <el-table-column prop="slug" label="Slug" align="center" width="150" />
+      <el-table-column prop="category_id" label="Category" align="center" width="100" />
+      <el-table-column label="Operating" fixed="right" width="300">
         <template slot-scope="scope">
           <el-button-group>
-            <el-button size="small">Preview</el-button>
+            <el-button size="small" @click="preview(scope.row.slug)">Preview</el-button>
+            <el-button size="small" @click="github(scope.row.github)">Github</el-button>
             <el-button size="small">Fetch</el-button>
-            <el-button size="small">Edit</el-button>
-            <el-button size="small">Github</el-button>
+            <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
           </el-button-group>
         </template>
       </el-table-column>
@@ -71,17 +82,33 @@
 
     <!--Pagination-->
     <el-col :span="24" class="toolbar">
-      <el-button v-if="list_type !== 1" size="mini" type="primary" style="float: left;" @click="batchCheck()">Enable</el-button>
+      <el-button size="mini" type="primary" style="float: left;" @click="batchCheck()">Enable</el-button>
       <el-pagination :page-sizes="[10, 20, 30, 40, 50, 100]" :page-size="pageSize" :total="total" layout="total, sizes, prev, pager, next" style="float:right" @size-change="handleSizeChange" @current-change="handleCurrentChange"/>
     </el-col>
+
+    <!--Edit-->
+    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title} [${editRow.slug}]`" size="tiny">
+      <el-form ref="paymentOrderForm" :model="editForm" label-width="120px">
+        <el-form-item label="Status" prop="status">
+          <el-select v-model="editForm.status" clearable placeholder="Select...">
+            <el-option
+              v-for="item in status_lists"
+              :key="item.value"
+              :label="item.name"
+              :value="item.value"/>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editVisible = false">Cancel</el-button>
+        <el-button :loading="editLoading" type="primary" @click="editSubmit">Submit</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import _ from 'lodash'
-import {
-  getEcosystems
-} from '@/api/ecosystem'
+import { getRepos, switchRepos, editRepos } from '@/api/app'
 
 export default {
   data() {
@@ -93,60 +120,67 @@ export default {
         { value: 2, name: 'Delete' }
       ],
       sort_type: [
-        { value: 0, name: 'stargazers_count' },
-        { value: 1, name: 'view_number' },
-        { value: 2, name: 'fetched_at' },
-        { value: 2, name: 'analytics_at' }
+        { value: 'stargazers_count', name: 'stargazers_count' },
+        { value: 'view_number', name: 'view_number' },
+        { value: 'fetched_at', name: 'fetched_at' },
+        { value: 'analytics_at', name: 'analytics_at' }
       ],
 
       // search
-      searchFrom: {
-        partner_target_id: '',
-        order_status: '',
-        order_no: '',
-        goods_name: '',
-        contact_name: '',
-        contact_mobile: '',
-        date_out_range: '',
-        select_date_type: 'created_at',
-        settlement_status: ''
+      searchForm: {
+        slug: '',
+        status: ''
       },
 
       // sort
-      sortFrom: {
-        partner_target_id: '',
-        order_status: '',
-        order_no: '',
-        goods_name: '',
-        contact_name: '',
-        contact_mobile: '',
-        date_out_range: '',
-        select_date_type: 'created_at',
-        settlement_status: ''
+      sortForm: {
+        sort_type: ''
       },
 
-      // 订单供应商申请结算
-      settlementLoading: false,
-      tableSettlementSelections: [],
+      // batch
+      tableSelections: [],
 
-      // 批量操作
-      checkBoxOrder: [],
-      batchButtonName: '批量选择',
-
-      // 列表数据、分页信息
-      orderList: [],
+      // data
+      list: [],
       pageSize: 10,
       total: 0,
       page: 1,
       tableLoading: false,
 
-      applyRefundVisible: false
+      // edit
+      editForm: {
+        status: ''
+      },
+      editVisible: false,
+      editLoading: false,
+      editRow: {}
     }
   },
   mounted() {
-    this.getEcosystems()
+    this.getRepos()
   },
   methods: {
+
+    preview(slug) {
+      window.open(`${process.env.WEB_URL}/repos/${slug}`)
+    },
+
+    github(url) {
+      window.open(url)
+    },
+
+    sort() {
+      this.getRepos()
+    },
+
+    formatStatus(row) {
+      for (let i = 0; i < this.status_lists.length; i++) {
+        if (this.status_lists[i].value === row.status) {
+          return this.status_lists[i].name
+        }
+      }
+      return '--'
+    },
 
     // 验证订单状态
     checkOrderStatus: function(selections) {
@@ -164,161 +198,87 @@ export default {
       this.tableSelections = selection
     },
 
-    // 全选
     handleSelectAll: function(selection) {
       this.tableSelections = selection
     },
 
-    handleSettlementSelect: function(selection, row) {
-      this.tableSettlementSelections = selection
-    },
-
-    // 全选
-    handleSettlementSelectAll: function(selection) {
-      this.tableSettlementSelections = selection
-    },
-
-    // 批量选择非套票订单
+    // batch
     batchCheck: function() {
-      if (!_.isEmpty(this.checkBoxOrder)) {
-        this.batchButtonName = '批量选择'
-        this.$refs.multipleTable.clearSelection()
-        this.tableSelections = []
-        this.checkBoxOrder = []
-      } else {
-        if (!_.isEmpty(this.orderList)) {
-          this.checkBoxOrder = []
-          for (const i in this.orderList) {
-            if (this.orderList[i].goods_type !== 3 && this.orderList[i].settlement_status === 0 && this.orderList[i].ticket_status === 2) {
-              this.checkBoxOrder.push(this.orderList[i])
-            }
-          }
+      const id = []
+      this.tableSelections.forEach(i => {
+        id.push(i.id)
+      })
+      if (id.length > 0) {
+        const params = {
+          id,
+          status: 1
         }
-        if (!_.isEmpty(this.checkBoxOrder)) {
-          this.batchButtonName = '取消选择'
-          this.$refs.multipleTable.clearSelection()
-          this.checkBoxOrder.forEach(row => {
-            this.$refs.multipleTable.toggleRowSelection(row, true)
-          })
-          this.tableSelections = this.checkBoxOrder
-        } else {
-          this.$message({
-            message: '没有符合条件的订单！',
-            type: 'warning'
-          })
-        }
-      }
-    },
-
-    // 取消选择
-    toggleSelection(rows) {
-      if (rows) {
-        rows.forEach(row => {
-          this.$refs.multipleTable.toggleRowSelection(row)
+        switchRepos(params).then(() => {
+          this.getRepos()
         })
-      } else {
-        this.$refs.multipleTable.clearSelection()
       }
     },
 
     // 获取列表
-    getEcosystems: function() {
+    getRepos: function() {
       const param = {
         page: this.page,
-        per_page: this.pageSize
+        limit: this.pageSize
       }
-      if (this.searchFrom.partner_target_id) {
-        param.supplier_id = this.searchFrom.partner_target_id
+      if (this.searchForm.slug !== '') {
+        param.slug = this.searchForm.slug
       }
-      if (this.searchFrom.order_status !== '') {
-        param.order_status = this.searchFrom.order_status
+      if (this.searchForm.status !== '') {
+        param.status = this.searchForm.status
       }
-      if (this.searchFrom.order_no) {
-        param.order_no = this.searchFrom.order_no
+      if (this.sortForm.sort_type !== '') {
+        param.sort_type = this.sortForm.sort_type
       }
-      if (this.searchFrom.contact_name) {
-        param.contact_name = this.searchFrom.contact_name
-      }
-      if (this.searchFrom.contact_mobile) {
-        param.contact_mobile = this.searchFrom.contact_mobile
-      }
-      if (this.searchFrom.settlement_status) {
-        param.settlement_status = this.searchFrom.settlement_status
-      }
-      if (this.searchFrom.goods_name) {
-        param.goods_name = this.searchFrom.goods_name
-      }
-      if (this.searchFrom.date_out_range[0] && this.searchFrom.date_out_range[1]) {
-        param.select_date_type = this.searchFrom.select_date_type
-        let dateFormat = 'yyyy-MM-dd hh:mm:ss'
-        if (this.searchFrom.select_date_type === 'travel_date') {
-          dateFormat = 'yyyy-MM-dd'
-        }
-        param.start_time = this.formatDate(this.searchFrom.date_out_range[0], dateFormat)
-        param.end_time = this.formatDate(this.searchFrom.date_out_range[1], dateFormat)
-      }
+
       this.tableLoading = true
-
-      getEcosystems(param).then(res => {
-        if (res.code === 200) {
-          this.tableSelections = []
-          if (!_.isEmpty(this.checkBoxOrder)) {
-            this.batchButtonName = '批量选择'
-            this.checkBoxOrder = []
-            this.$refs.multipleTable.clearSelection()
-          }
-          this.orderList = res.data
-          this.total = res.total
-        } else {
-          this.$message({
-            message: res.message,
-            type: 'error'
-          })
-        }
+      getRepos(param).then(res => {
+        this.list = res.rows
+        this.total = res.count
         this.tableLoading = false
-      }).catch(() => {
-        this.tableLoading = false
-        this.$message({
-          message: '网络异常！',
-          type: 'error'
-        })
       })
-    },
-
-    // 时间日期格式化 yyyy-MM-dd hh:mm:ss yyyy-MM-dd
-    formatDate: function(date, fmt) {
-      const o = {
-        'M+': date.getMonth() + 1,
-        'd+': date.getDate(),
-        'h+': date.getHours(),
-        'm+': date.getMinutes(),
-        's+': date.getSeconds(),
-        'q+': Math.floor((date.getMonth() + 3) / 3),
-        'S': date.getMilliseconds()
-      }
-      if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length))
-      for (const k in o) { if (new RegExp('(' + k + ')').test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length))) }
-      return fmt
     },
 
     // 改变每页条数
     handleSizeChange: function(size) {
       this.pageSize = size
       if ((this.page - 1) * size <= this.total) {
-        this.getEcosystems()
+        this.getRepos()
       }
     },
 
     // 改变当前页
     handleCurrentChange: function(page) {
       this.page = page
-      this.getEcosystems()
+      this.getRepos()
     },
 
     resetForm(formName) {
       this.tableSelections = []
       this.$refs[formName].resetFields()
-      this.getEcosystems()
+      this.getRepos()
+    },
+
+    editSubmit() {
+      if (this.editForm.status !== '') {
+        const params = {
+          id: this.editRow.id,
+          status: this.editForm.status
+        }
+        editRepos(params).then(() => {
+          this.editVisible = false
+          this.getRepos()
+        })
+      }
+    },
+    showEdit(row) {
+      this.editForm.status = ''
+      this.editRow = row
+      this.editVisible = true
     }
   }
 }

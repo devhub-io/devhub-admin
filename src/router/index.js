@@ -86,8 +86,8 @@ export const constantRouterMap = [
     children: [
       { path: '/base/repos', component: () => import('@/views/base/repos'), name: 'repos', meta: { title: 'Repos' }},
       { path: '/base/developers', component: () => import('@/views/base/developers'), name: 'developers', meta: { title: 'Developers' }},
-      { path: '/base/sites', component: () => import('@/views/content/site'), name: 'sites', meta: { title: 'Sites' }},
-      { path: '/base/wiki', component: () => import('@/views/content/site'), name: 'wiki', meta: { title: 'Wiki' }}
+      { path: '/base/sites', component: () => import('@/views/base/developers'), name: 'sites', meta: { title: 'Sites' }},
+      { path: '/base/wiki', component: () => import('@/views/base/developers'), name: 'wiki', meta: { title: 'Wiki' }}
     ]
   },
   {
