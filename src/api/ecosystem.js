@@ -7,3 +7,19 @@ export function getEcosystems(params) {
     params: params
   })
 }
+
+export function switchEcosystem(params) {
+  return request({
+    url: `/admin/ecosystem/switch`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function editEcosystem(params) {
+  return request({
+    url: `/admin/ecosystem/edit`,
+    method: 'post',
+    data: params
+  })
+}
