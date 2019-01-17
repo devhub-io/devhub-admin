@@ -31,3 +31,35 @@ export function createEcosystem(params) {
     data: params
   })
 }
+
+export function createEcosystemCollection(params) {
+  return request({
+    url: `/admin/ecosystem/collection/create`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function editEcosystemCollection(params) {
+  return request({
+    url: `/admin/ecosystem/collection/edit`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function deleteEcosystemCollection(params) {
+  return request({
+    url: `/admin/ecosystem/collection/delete`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function getEcosystemCollections(params) {
+  return request({
+    url: `/admin/ecosystem/collections`,
+    method: 'get',
+    params: params
+  })
+}
