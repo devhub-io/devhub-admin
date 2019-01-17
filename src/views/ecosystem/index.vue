@@ -72,6 +72,7 @@
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.slug)">Preview</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
+            <el-button size="small" @click="showCollections(scope.row)">Collections</el-button>
           </el-button-group>
         </template>
       </el-table-column>
@@ -312,6 +313,9 @@ export default {
           this.getEcosystems()
         })
       }
+    },
+    showCollections(row) {
+      this.$router.push(`/ecosystem/${row.id}/collections?title=${row.title}`)
     }
   }
 }

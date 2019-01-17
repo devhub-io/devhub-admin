@@ -98,6 +98,7 @@ export const constantRouterMap = [
     meta: { title: 'Ecosystems', icon: 'tree' },
     children: [
       { path: '/ecosystem/index', component: () => import('@/views/ecosystem/index'), name: 'ecosystems_index', meta: { title: 'List' }},
+      { path: '/ecosystem/:id/collections', component: () => import('@/views/ecosystem/collections'), name: 'ecosystems_collections', meta: { title: 'Collections' }, hidden: true, noCache: true },
       { path: '/ecosystem/demo', component: () => import('@/views/ecosystem/index'), name: 'vvv', meta: { title: '__' }}
     ]
   },
