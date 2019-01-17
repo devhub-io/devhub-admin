@@ -79,3 +79,19 @@ export function createEcosystemCollectionItem(params) {
     data: params
   })
 }
+
+export function editEcosystemCollectionItem(params) {
+  return request({
+    url: `/admin/ecosystem/collection/item/edit`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function deleteEcosystemCollectionItem(params) {
+  return request({
+    url: `/admin/ecosystem/collection/item/delete`,
+    method: 'post',
+    data: params
+  })
+}

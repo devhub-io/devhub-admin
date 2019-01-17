@@ -138,13 +138,34 @@
     </el-dialog>
 
     <!--Items-->
-    <el-dialog :visible.sync="itemsVisible" :title="`${selectNode.title} Items`">
+    <el-dialog :visible.sync="itemsVisible" :title="`${selectNode.title} Items`" width="80%">
       <el-form ref="paymentOrderForm" :model="itemsForm" label-width="120px">
         <el-button @click="createItemVisible = true">Create Item</el-button>
         <el-row v-loading="itemsListLoading" :gutter="1">
           <el-col v-for="item in items" :key="item.id" :span="24" class="item-col">
             <el-card shadow="always">
+              <el-input-number v-model="item.sort" size="mini" @change="changeItemSort(item)"/>
               {{ item.title }} [type: {{ item.type }} foreign_id: {{ item.foreign_id }}]
+              <el-button
+                type="text"
+                size="mini"
+                @click="confirmItemDelete(item)">
+                Delete
+              </el-button>
+              <el-button
+                v-if="item.status !== 1 "
+                type="text"
+                size="mini"
+                @click="switchItemStatus(item, 1)">
+                Enable
+              </el-button>
+              <el-button
+                v-if="item.status !== 0"
+                type="text"
+                size="mini"
+                @click="switchItemStatus(item, 0)">
+                Disable
+              </el-button>
             </el-card>
           </el-col>
         </el-row>
@@ -277,7 +298,9 @@ import {
   editEcosystemCollection,
   deleteEcosystemCollection,
   getEcosystemCollectionItems,
-  createEcosystemCollectionItem
+  createEcosystemCollectionItem,
+  editEcosystemCollectionItem,
+  deleteEcosystemCollectionItem
 } from '@/api/ecosystem'
 import {
   getSites,
@@ -530,6 +553,28 @@ export default {
       getEcosystemCollectionItems({ id: this.selectNode.id }).then(res => {
         this.items = res
         this.itemsListLoading = false
+      })
+    },
+
+    changeItemSort(item) {
+      editEcosystemCollectionItem({ id: item.id, sort: item.sort }).then(() => {
+        this.getEcosystemCollectionItems()
+      })
+    },
+    confirmItemDelete(item) {
+      this.$confirm(`Confirm delete this item [${item.title}] ?`, 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        deleteEcosystemCollectionItem({ id: item.id }).then(() => {
+          this.getEcosystemCollectionItems()
+        })
+      })
+    },
+    switchItemStatus(item, status) {
+      editEcosystemCollectionItem({ id: item.id, status: status }).then(() => {
+        this.getEcosystemCollectionItems()
       })
     }
   }
