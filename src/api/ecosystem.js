@@ -63,3 +63,19 @@ export function getEcosystemCollections(params) {
     params: params
   })
 }
+
+export function getEcosystemCollectionItems(params) {
+  return request({
+    url: `/admin/ecosystem/collection/items`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function createEcosystemCollectionItem(params) {
+  return request({
+    url: `/admin/ecosystem/collection/item/create`,
+    method: 'post',
+    data: params
+  })
+}

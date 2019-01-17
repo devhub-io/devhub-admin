@@ -1,5 +1,13 @@
 import request from '@/utils/request'
 
+export function getSites(params) {
+  return request({
+    url: `/admin/sites`,
+    method: 'get',
+    params: params
+  })
+}
+
 export function getRepos(params) {
   return request({
     url: `/admin/repos`,

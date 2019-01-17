@@ -31,7 +31,7 @@
           node-key="id"
           default-expand-all>
           <span slot-scope="{ node, data }" class="tree-node">
-            <span>{{ data.title }}</span>
+            <span>[{{ data.id }}] {{ data.title }}</span>
             <span>
               [{{ data.status | status }}](S: {{ data.sort }}, V: {{ data.view_number }})
               <el-button
@@ -55,7 +55,7 @@
               <el-button
                 type="text"
                 size="mini"
-                @click="items(data)">
+                @click="showItems(data)">
                 Items
               </el-button>
               <el-button
@@ -63,6 +63,11 @@
                 size="mini"
                 @click="confirmDelete(data)">
                 Delete
+              </el-button>
+              <el-button
+                type="text"
+                size="mini">
+                Preview
               </el-button>
             </span>
           </span>
@@ -133,23 +138,13 @@
     </el-dialog>
 
     <!--Items-->
-    <el-dialog :visible.sync="itemsVisible" title="Items">
+    <el-dialog :visible.sync="itemsVisible" :title="`${selectNode.title} Items`">
       <el-form ref="paymentOrderForm" :model="itemsForm" label-width="120px">
         <el-button @click="createItemVisible = true">Create Item</el-button>
-        <el-row :gutter="1">
-          <el-col :span="24" class="item-col">
+        <el-row v-loading="itemsListLoading" :gutter="1">
+          <el-col v-for="item in items" :key="item.id" :span="24" class="item-col">
             <el-card shadow="always">
-              Item 1
-            </el-card>
-          </el-col>
-          <el-col :span="24" class="item-col">
-            <el-card shadow="always">
-              Item 1
-            </el-card>
-          </el-col>
-          <el-col :span="24" class="item-col">
-            <el-card shadow="always">
-              Item 1
+              {{ item.title }} [type: {{ item.type }} foreign_id: {{ item.foreign_id }}]
             </el-card>
           </el-col>
         </el-row>
@@ -162,27 +157,113 @@
 
     <!--Add Item-->
     <el-dialog :visible.sync="createItemVisible" title="Create Item" width="40%">
-      <el-form ref="paymentOrderForm" :model="itemsForm" label-width="120px">
-        <el-tabs type="border-card">
-          <el-tab-pane label="Repos">
-            <el-form-item label="Search" prop="search">
-              <el-input v-model="createItemForm.search" type="text"/>
+      <el-form ref="paymentOrderForm" :model="createItemForm" label-width="120px">
+        <el-tabs v-model="createItemForm.type" type="border-card">
+          <el-tab-pane label="Text" name="text">
+            <el-form-item label="Text" prop="text">
+              <el-input v-model="createItemForm.text" type="text"/>
             </el-form-item>
           </el-tab-pane>
-          <el-tab-pane label="Developer">Developer</el-tab-pane>
-          <el-tab-pane label="Site">Site</el-tab-pane>
-          <el-tab-pane label="Link">
-            <el-tab-pane label="Repos">
-              <el-form-item label="Url" prop="url">
-                <el-input v-model="createItemForm.url" type="url"/>
-              </el-form-item>
-            </el-tab-pane>
+          <el-tab-pane label="Repos" name="repos">
+            <el-form-item label="Search" prop="search">
+              <el-autocomplete
+                :fetch-suggestions="queryReposSearchAsync"
+                placeholder="Search..."
+                @select="handleSelectRepos"
+              >
+                <i slot="suffix" class="el-icon-search el-input__icon"/>
+                <template slot-scope="{ item }">
+                  <div class="title">{{ item.owner }}/{{ item.repo }}</div>
+                  <span class="star"><i class="el-icon-star-on" /> {{ item.stargazers_count }}</span>
+                </template>
+              </el-autocomplete>
+            </el-form-item>
+            <el-row v-if="createItemForm.repos" justify="space-around">
+              <el-col :span="24">
+                <el-button
+                  type="text"
+                  size="mini"
+                  @click="createItemForm.repos = {}">
+                  Clear
+                </el-button>
+              </el-col>
+              <el-col :span="24">
+                <div class="title">{{ createItemForm.repos.owner }}/{{ createItemForm.repos.repo }}</div>
+                <span class="star"><i class="el-icon-star-on" /> {{ createItemForm.repos.stargazers_count }}</span>
+              </el-col>
+            </el-row>
+          </el-tab-pane>
+          <el-tab-pane label="Developer" name="developers">
+            <el-form-item label="Search" prop="search">
+              <el-autocomplete
+                :fetch-suggestions="queryDeveloperSearchAsync"
+                placeholder="Search..."
+                @select="handleSelectDeveloper"
+              >
+                <i slot="suffix" class="el-icon-search el-input__icon"/>
+                <template slot-scope="{ item }">
+                  <div class="title">{{ item.login }}({{ item.name }})</div>
+                  <span class="user"><i class="el-icon-info" /> {{ item.followers }}</span>
+                </template>
+              </el-autocomplete>
+            </el-form-item>
+            <el-row v-if="createItemForm.developer" justify="space-around">
+              <el-col :span="24">
+                <el-button
+                  type="text"
+                  size="mini"
+                  @click="createItemForm.developer = {}">
+                  Clear
+                </el-button>
+              </el-col>
+              <el-col :span="24">
+                <div class="title">{{ createItemForm.developer.login }}({{ createItemForm.developer.name }})</div>
+                <span class="star"><i class="el-icon-info" /> {{ createItemForm.developer.followers }}</span>
+              </el-col>
+            </el-row>
+          </el-tab-pane>
+          <el-tab-pane label="Site" name="sites">
+            <el-form-item label="Search" prop="search">
+              <el-autocomplete
+                :fetch-suggestions="querySiteSearchAsync"
+                placeholder="Search..."
+                @select="handleSelectSite"
+              >
+                <i slot="suffix" class="el-icon-search el-input__icon"/>
+                <template slot-scope="{ item }">
+                  <div class="title">{{ item.title }}</div>
+                  <span class="url">{{ item.url }}</span>
+                </template>
+              </el-autocomplete>
+            </el-form-item>
+            <el-row v-if="createItemForm.site" justify="space-around">
+              <el-col :span="24">
+                <el-button
+                  type="text"
+                  size="mini"
+                  @click="createItemForm.site = {}">
+                  Clear
+                </el-button>
+              </el-col>
+              <el-col :span="24">
+                <div class="title">{{ createItemForm.site.title }}</div>
+                <span class="url">{{ createItemForm.site.url }}</span>
+              </el-col>
+            </el-row>
+          </el-tab-pane>
+          <el-tab-pane label="Link" name="links">
+            <el-form-item label="Title" prop="title">
+              <el-input v-model="createItemForm.title" type="text"/>
+            </el-form-item>
+            <el-form-item label="Url" prop="url">
+              <el-input v-model="createItemForm.url" type="url"/>
+            </el-form-item>
           </el-tab-pane>
         </el-tabs>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="createItemVisible = false">Cancel</el-button>
-        <el-button :loading="createItemLoading" type="primary">Submit</el-button>
+        <el-button :loading="createItemLoading" type="primary" @click="createItemSubmit">Submit</el-button>
       </span>
     </el-dialog>
   </div>
@@ -190,7 +271,19 @@
 
 <script>
 import _ from 'lodash'
-import { createEcosystemCollection, getEcosystemCollections, editEcosystemCollection, deleteEcosystemCollection } from '@/api/ecosystem'
+import {
+  createEcosystemCollection,
+  getEcosystemCollections,
+  editEcosystemCollection,
+  deleteEcosystemCollection,
+  getEcosystemCollectionItems,
+  createEcosystemCollectionItem
+} from '@/api/ecosystem'
+import {
+  getSites,
+  getRepos,
+  getDevelopers
+} from '@/api/app'
 
 export default {
   filters: {
@@ -247,10 +340,17 @@ export default {
       },
       itemsVisible: false,
       itemsLoading: false,
+      itemsListLoading: false,
+      items: [],
 
       // Items
       createItemForm: {
-        status: ''
+        type: 'text',
+        text: '',
+        repos: {},
+        developer: {},
+        site: {},
+        url: ''
       },
       createItemVisible: false,
       createItemLoading: false,
@@ -340,9 +440,13 @@ export default {
       })
     },
 
-    items() {
+    showItems(data) {
       this.itemsVisible = true
+      this.items = []
+      this.selectNode = _.clone(data)
+      this.getEcosystemCollectionItems()
     },
+
     confirmDelete(data) {
       this.$confirm(`Confirm delete this node [${data.title}] ?`, 'Warning', {
         confirmButtonText: 'Confirm',
@@ -355,15 +459,60 @@ export default {
       })
     },
 
+    createItemSubmit() {
+      console.log(this.createItemForm)
+      this.createItemLoading = true
+      const params = {
+        collection_id: this.selectNode.id,
+        title: this.createItemForm.text,
+        type: this.createItemForm.type,
+        url: this.createItemForm.url
+      }
+      if (this.createItemForm.type === 'links') {
+        params.title = this.createItemForm.title
+      }
+      if (this.createItemForm.type === 'repos') {
+        params.foreign_id = this.createItemForm.repos.id
+      }
+      if (this.createItemForm.type === 'developers') {
+        params.foreign_id = this.createItemForm.developer.id
+      }
+      if (this.createItemForm.type === 'sites') {
+        params.foreign_id = this.createItemForm.site.id
+      }
+      createEcosystemCollectionItem(params).then(() => {
+        this.createItemLoading = false
+        this.createItemVisible = false
+        this.getEcosystemCollectionItems()
+      })
+    },
+
     back() {
       this.$router.go(-1)
     },
 
-    remove(node, data) {
-      const parent = node.parent
-      const children = parent.data.children || parent.data
-      const index = children.findIndex(d => d.id === data.id)
-      children.splice(index, 1)
+    async queryReposSearchAsync(queryString, cb) {
+      const res = await getRepos({ slug: queryString, sort_type: 'stargazers_count' })
+      cb(res.rows)
+    },
+    handleSelectRepos(item) {
+      this.createItemForm.repos = item
+    },
+
+    async queryDeveloperSearchAsync(queryString, cb) {
+      const res = await getDevelopers({ login: queryString, sort_type: 'followers' })
+      cb(res.rows)
+    },
+    handleSelectDeveloper(item) {
+      this.createItemForm.developer = item
+    },
+
+    async querySiteSearchAsync(queryString, cb) {
+      const res = await getSites({ title: queryString, sort_type: 'sort' })
+      cb(res.rows)
+    },
+    handleSelectSite(item) {
+      this.createItemForm.site = item
     },
 
     getEcosystemCollections() {
@@ -373,6 +522,14 @@ export default {
         this.collectionsLoading = false
         this.cascaderData = _.clone(this.collections)
         this.cascaderData.push({ id: 0, title: 'Root Path' })
+      })
+    },
+
+    getEcosystemCollectionItems() {
+      this.itemsListLoading = true
+      getEcosystemCollectionItems({ id: this.selectNode.id }).then(res => {
+        this.items = res
+        this.itemsListLoading = false
       })
     }
   }
