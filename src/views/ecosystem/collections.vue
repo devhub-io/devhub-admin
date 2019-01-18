@@ -31,9 +31,9 @@
           node-key="id"
           default-expand-all>
           <span slot-scope="{ node, data }" class="tree-node">
-            <span>[{{ data.id }}] {{ data.title }}</span>
+            <span class="node-title">[{{ data.id }}] {{ data.title }}</span>
             <span>
-              [{{ data.status | status }}](S: {{ data.sort }}, V: {{ data.view_number }})
+              <span :class="{ 'color-yellow': data.status === 0 }">[{{ data.status | status }}]</span>(S: {{ data.sort }}, V: {{ data.view_number }})
               <el-button
                 type="text"
                 size="mini"
@@ -61,6 +61,7 @@
               <el-button
                 type="text"
                 size="mini"
+                class="color-red"
                 @click="confirmDelete(data)">
                 Delete
               </el-button>
@@ -138,34 +139,42 @@
     </el-dialog>
 
     <!--Items-->
-    <el-dialog :visible.sync="itemsVisible" :title="`${selectNode.title} Items`" width="80%">
+    <el-dialog :visible.sync="itemsVisible" :title="`[${selectNode.id}]${selectNode.title} Items`" width="70%">
       <el-form ref="paymentOrderForm" :model="itemsForm" label-width="120px">
         <el-button @click="createItemVisible = true">Create Item</el-button>
         <el-row v-loading="itemsListLoading" :gutter="1">
           <el-col v-for="item in items" :key="item.id" :span="24" class="item-col">
-            <el-card shadow="always">
-              <el-input-number v-model="item.sort" size="mini" @change="changeItemSort(item)"/>
-              {{ item.title }} [type: {{ item.type }} foreign_id: {{ item.foreign_id }}]
-              <el-button
-                type="text"
-                size="mini"
-                @click="confirmItemDelete(item)">
-                Delete
-              </el-button>
-              <el-button
-                v-if="item.status !== 1 "
-                type="text"
-                size="mini"
-                @click="switchItemStatus(item, 1)">
-                Enable
-              </el-button>
-              <el-button
-                v-if="item.status !== 0"
-                type="text"
-                size="mini"
-                @click="switchItemStatus(item, 0)">
-                Disable
-              </el-button>
+            <el-card shadow="always" class="item-card">
+              <el-col :span="4">
+                <el-input-number v-model="item.sort" size="mini" @change="changeItemSort(item)"/>
+              </el-col>
+              <el-col :span="17">
+                {{ item.title }} [type: {{ item.type }} foreign_id: {{ item.foreign_id }}]
+              </el-col>
+              <el-col :span="3">
+                <el-button
+                  type="text"
+                  size="mini"
+                  class="color-red"
+                  @click="confirmItemDelete(item)">
+                  Delete
+                </el-button>
+                <el-button
+                  v-if="item.status !== 1 "
+                  type="text"
+                  size="mini"
+                  @click="switchItemStatus(item, 1)">
+                  Enable
+                </el-button>
+                <el-button
+                  v-if="item.status !== 0"
+                  type="text"
+                  size="mini"
+                  class="color-yellow"
+                  @click="switchItemStatus(item, 0)">
+                  Disable
+                </el-button>
+              </el-col>
             </el-card>
           </el-col>
         </el-row>
@@ -634,5 +643,14 @@ export default {
   .item-col {
     margin-top: 10px;
     margin-bottom: 10px;
+  }
+
+  .item-card {
+    min-height: 70px;
+  }
+
+  .node-title {
+    width: 500px;
+    overflow-x: hidden;
   }
 </style>

@@ -95,3 +95,11 @@ export function deleteEcosystemCollectionItem(params) {
     data: params
   })
 }
+
+export function fetchEcosystemCollection(params) {
+  return request({
+    url: `/admin/ecosystem/collection/fetch`,
+    method: 'post',
+    data: params
+  })
+}

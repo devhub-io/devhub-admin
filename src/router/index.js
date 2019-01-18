@@ -86,8 +86,11 @@ export const constantRouterMap = [
     children: [
       { path: '/base/repos', component: () => import('@/views/base/repos'), name: 'repos', meta: { title: 'Repos' }},
       { path: '/base/developers', component: () => import('@/views/base/developers'), name: 'developers', meta: { title: 'Developers' }},
-      { path: '/base/sites', component: () => import('@/views/base/developers'), name: 'sites', meta: { title: 'Sites' }},
-      { path: '/base/wiki', component: () => import('@/views/base/developers'), name: 'wiki', meta: { title: 'Wiki' }}
+      { path: '/base/sites', component: () => import('@/views/base/sites'), name: 'sites', meta: { title: 'Sites' }},
+      { path: '/base/wiki', component: () => import('@/views/base/sites'), name: 'wiki', meta: { title: 'Wiki' }},
+      { path: '/base/links', component: () => import('@/views/base/sites'), name: 'links', meta: { title: 'Links' }},
+      { path: '/base/news', component: () => import('@/views/base/sites'), name: 'news', meta: { title: 'News' }},
+      { path: '/base/articles', component: () => import('@/views/base/sites'), name: 'articles', meta: { title: 'Articles' }}
     ]
   },
   {
@@ -99,7 +102,7 @@ export const constantRouterMap = [
     children: [
       { path: '/ecosystem/index', component: () => import('@/views/ecosystem/index'), name: 'ecosystems_index', meta: { title: 'List' }},
       { path: '/ecosystem/:id/collections', component: () => import('@/views/ecosystem/collections'), name: 'ecosystems_collections', meta: { title: 'Collections' }, hidden: true, noCache: true },
-      { path: '/ecosystem/demo', component: () => import('@/views/ecosystem/index'), name: 'vvv', meta: { title: '__' }}
+      { path: '/ecosystem/data', component: () => import('@/views/ecosystem/data'), name: 'ecosystems_data', meta: { title: 'Data' }}
     ]
   },
   {
@@ -110,7 +113,7 @@ export const constantRouterMap = [
     meta: { title: 'Workflow', icon: 'guide' },
     children: [
       { path: '/workflow/index', component: () => import('@/views/workflow/index'), name: 'workflow_index', meta: { title: 'List' }},
-      { path: '/workflow/demo', component: () => import('@/views/workflow/index'), name: 'aff', meta: { title: '__' }}
+      { path: '/workflow/feedback', component: () => import('@/views/workflow/index'), name: 'feedback', meta: { title: 'Feedback' }}
     ]
   },
   {
