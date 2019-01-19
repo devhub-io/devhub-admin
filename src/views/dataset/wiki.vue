@@ -4,17 +4,11 @@
     <!--Tools-->
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form ref="searchForm" :model="searchForm" :inline="true" >
-        <el-form-item label="Slug" prop="login">
-          <el-input v-model="searchForm.login" placeholder="Input..."/>
+        <el-form-item label="Title" prop="title">
+          <el-input v-model="searchForm.title" placeholder="Input..."/>
         </el-form-item>
-        <el-form-item label="Type" prop="type">
-          <el-select v-model="searchForm.type" clearable placeholder="Select...">
-            <el-option
-              v-for="item in type_lists"
-              :key="item.value"
-              :label="item.name"
-              :value="item.value"/>
-          </el-select>
+        <el-form-item label="Url" prop="url">
+          <el-input v-model="searchForm.url" type="url" placeholder="Input..."/>
         </el-form-item>
         <el-form-item label="Status" prop="status">
           <el-select v-model="searchForm.status" clearable placeholder="Select...">
@@ -26,7 +20,7 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="getDevelopers">Query</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="getWiki">Query</el-button>
         </el-form-item>
         <el-form-item>
           <el-button @click="resetForm('searchForm')">Clear</el-button>
@@ -53,34 +47,26 @@
     <el-table v-loading="tableLoading" ref="multipleTable" :data="list" stripe style="width: 100%" @select="handleSelect" @select-all="handleSelectAll">
       <el-table-column type="selection" width="50"/>
       <el-table-column prop="id" label="#" width="100" />
-      <el-table-column prop="avatar_url" label="Avatar" width="150">
+      <el-table-column prop="title" label="Title" width="150" />
+      <el-table-column prop="url" label="Url" width="200" />
+      <el-table-column prop="statistics" label="Statistics" width="100">
         <template slot-scope="scope">
-          <img :src="scope.row.avatar_url" alt="" width="100">
-        </template>
-      </el-table-column>
-      <el-table-column prop="login" label="Name" width="100" />
-      <el-table-column prop="type" label="Type" align="center" width="120" />
-      <el-table-column prop="statistics" label="Statistics" width="200">
-        <template slot-scope="scope">
-          <div>followers: {{ scope.row.followers }}</div>
-          <div>following: {{ scope.row.following }}</div>
-          <div>view_number: {{ scope.row.view_number }}</div>
+          <div>-</div>
         </template>
       </el-table-column>
       <el-table-column prop="time" label="Time" width="200">
         <template slot-scope="scope">
-          <div>fetched_at</div>
-          <div>{{ scope.row.fetched_at }}</div>
-          <div>analytics_at</div>
-          <div>{{ scope.row.analytics_at || '--' }}</div>
+          <div>updated_at</div>
+          <div>{{ scope.row.updated_at }}</div>
+          <div>created_at</div>
+          <div>{{ scope.row.created_at || '--' }}</div>
         </template>
       </el-table-column>
       <el-table-column :formatter="formatStatus" prop="status" label="Status" align="center" width="100"/>
-      <el-table-column label="Operating" fixed="right" width="300">
+      <el-table-column label="Operating" fixed="right" width="250">
         <template slot-scope="scope">
           <el-button-group>
-            <el-button size="small" @click="preview(scope.row.login)">Preview</el-button>
-            <el-button size="small" @click="github(scope.row.html_url)">Github</el-button>
+            <el-button size="small" @click="preview(scope.row.url)">Preview</el-button>
             <el-button size="small">Fetch</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
           </el-button-group>
@@ -116,7 +102,7 @@
 </template>
 
 <script>
-import { getDevelopers, switchDeveloper, editDeveloper } from '@/api/app'
+import { getWiki, switchDeveloper, editDeveloper } from '@/api/app'
 
 export default {
   data() {
@@ -127,20 +113,15 @@ export default {
         { value: 1, name: 'Enable' },
         { value: 2, name: 'Delete' }
       ],
-      type_lists: [
-        { value: 'User', name: 'User' },
-        { value: 'Organization', name: 'Organization' }
-      ],
       sort_type: [
-        { value: 'followers', name: 'followers' },
-        { value: 'view_number', name: 'view_number' },
-        { value: 'fetched_at', name: 'fetched_at' },
-        { value: 'analytics_at', name: 'analytics_at' }
+        { value: 'sort', name: 'sort' },
+        { value: 'created_at', name: 'created_at' },
+        { value: 'updated_at', name: 'updated_at' }
       ],
 
       // search
       searchForm: {
-        login: '',
+        title: '',
         status: ''
       },
 
@@ -169,20 +150,16 @@ export default {
     }
   },
   mounted() {
-    this.getDevelopers()
+    this.getWiki()
   },
   methods: {
 
-    preview(login) {
-      window.open(`${process.env.WEB_URL}/developer/${login}`)
-    },
-
-    github(url) {
+    preview(url) {
       window.open(url)
     },
 
     sort() {
-      this.getDevelopers()
+      this.getWiki()
     },
 
     formatStatus(row) {
@@ -214,32 +191,32 @@ export default {
           status: 1
         }
         switchDeveloper(params).then(() => {
-          this.getDevelopers()
+          this.getWiki()
         })
       }
     },
 
     // List
-    getDevelopers: function() {
+    getWiki: function() {
       const param = {
         page: this.page,
         limit: this.pageSize
       }
-      if (this.searchForm.login !== '') {
-        param.login = this.searchForm.login
-      }
-      if (this.searchForm.type !== '') {
-        param.type = this.searchForm.type
+      if (this.searchForm.title !== '') {
+        param.title = this.searchForm.title
       }
       if (this.searchForm.status !== '') {
         param.status = this.searchForm.status
+      }
+      if (this.searchForm.url !== '') {
+        param.url = this.searchForm.url
       }
       if (this.sortForm.sort_type !== '') {
         param.sort_type = this.sortForm.sort_type
       }
 
       this.tableLoading = true
-      getDevelopers(param).then(res => {
+      getWiki(param).then(res => {
         this.list = res.rows
         this.total = res.count
         this.tableLoading = false
@@ -249,19 +226,21 @@ export default {
     handleSizeChange: function(size) {
       this.pageSize = size
       if ((this.page - 1) * size <= this.total) {
-        this.getDevelopers()
+        this.getWiki()
       }
     },
 
     handleCurrentChange: function(page) {
       this.page = page
-      this.getDevelopers()
+      this.getWiki()
     },
 
     resetForm(formName) {
+      this.pageSize = 10
+      this.page = 1
       this.tableSelections = []
       this.$refs[formName].resetFields()
-      this.getDevelopers()
+      this.getWiki()
     },
 
     editSubmit() {
@@ -272,7 +251,7 @@ export default {
         }
         editDeveloper(params).then(() => {
           this.editVisible = false
-          this.getDevelopers()
+          this.getWiki()
         })
       }
     },

@@ -8,6 +8,38 @@ export function getSites(params) {
   })
 }
 
+export function getWiki(params) {
+  return request({
+    url: `/admin/wiki`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function getLinks(params) {
+  return request({
+    url: `/admin/links`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function getNews(params) {
+  return request({
+    url: `/admin/news`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function getArticles(params) {
+  return request({
+    url: `/admin/articles`,
+    method: 'get',
+    params: params
+  })
+}
+
 export function getRepos(params) {
   return request({
     url: `/admin/repos`,

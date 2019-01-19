@@ -4,8 +4,17 @@
     <!--Tools-->
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form ref="searchForm" :model="searchForm" :inline="true" >
-        <el-form-item label="Slug" prop="slug">
-          <el-input v-model="searchForm.slug" placeholder="Input..."/>
+        <el-form-item label="Slug" prop="login">
+          <el-input v-model="searchForm.login" placeholder="Input..."/>
+        </el-form-item>
+        <el-form-item label="Type" prop="type">
+          <el-select v-model="searchForm.type" clearable placeholder="Select...">
+            <el-option
+              v-for="item in type_lists"
+              :key="item.value"
+              :label="item.name"
+              :value="item.value"/>
+          </el-select>
         </el-form-item>
         <el-form-item label="Status" prop="status">
           <el-select v-model="searchForm.status" clearable placeholder="Select...">
@@ -17,7 +26,7 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="getRepos">Query</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="getDevelopers">Query</el-button>
         </el-form-item>
         <el-form-item>
           <el-button @click="resetForm('searchForm')">Clear</el-button>
@@ -44,15 +53,17 @@
     <el-table v-loading="tableLoading" ref="multipleTable" :data="list" stripe style="width: 100%" @select="handleSelect" @select-all="handleSelectAll">
       <el-table-column type="selection" width="50"/>
       <el-table-column prop="id" label="#" width="100" />
-      <el-table-column prop="cover" label="Cover" width="150">
+      <el-table-column prop="avatar_url" label="Avatar" width="150">
         <template slot-scope="scope">
-          <img :src="scope.row.cover" alt="" width="100">
+          <img :src="scope.row.avatar_url" alt="" width="100">
         </template>
       </el-table-column>
-      <el-table-column prop="title" label="Title" width="200" />
+      <el-table-column prop="login" label="Name" width="100" />
+      <el-table-column prop="type" label="Type" align="center" width="120" />
       <el-table-column prop="statistics" label="Statistics" width="200">
         <template slot-scope="scope">
-          <div>stargazers_count: {{ scope.row.stargazers_count }}</div>
+          <div>followers: {{ scope.row.followers }}</div>
+          <div>following: {{ scope.row.following }}</div>
           <div>view_number: {{ scope.row.view_number }}</div>
         </template>
       </el-table-column>
@@ -65,14 +76,11 @@
         </template>
       </el-table-column>
       <el-table-column :formatter="formatStatus" prop="status" label="Status" align="center" width="100"/>
-      <el-table-column prop="language" label="Language" align="center" width="120" />
-      <el-table-column prop="slug" label="Slug" align="center" width="150" />
-      <el-table-column prop="category_id" label="Category" align="center" width="100" />
       <el-table-column label="Operating" fixed="right" width="300">
         <template slot-scope="scope">
           <el-button-group>
-            <el-button size="small" @click="preview(scope.row.slug)">Preview</el-button>
-            <el-button size="small" @click="github(scope.row.github)">Github</el-button>
+            <el-button size="small" @click="preview(scope.row.login)">Preview</el-button>
+            <el-button size="small" @click="github(scope.row.html_url)">Github</el-button>
             <el-button size="small">Fetch</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
           </el-button-group>
@@ -87,7 +95,7 @@
     </el-col>
 
     <!--Edit-->
-    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title} [${editRow.slug}]`" size="tiny">
+    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.login}`" size="tiny">
       <el-form ref="paymentOrderForm" :model="editForm" label-width="120px">
         <el-form-item label="Status" prop="status">
           <el-select v-model="editForm.status" clearable placeholder="Select...">
@@ -108,7 +116,7 @@
 </template>
 
 <script>
-import { getRepos, switchRepos, editRepos } from '@/api/app'
+import { getDevelopers, switchDeveloper, editDeveloper } from '@/api/app'
 
 export default {
   data() {
@@ -119,8 +127,12 @@ export default {
         { value: 1, name: 'Enable' },
         { value: 2, name: 'Delete' }
       ],
+      type_lists: [
+        { value: 'User', name: 'User' },
+        { value: 'Organization', name: 'Organization' }
+      ],
       sort_type: [
-        { value: 'stargazers_count', name: 'stargazers_count' },
+        { value: 'followers', name: 'followers' },
         { value: 'view_number', name: 'view_number' },
         { value: 'fetched_at', name: 'fetched_at' },
         { value: 'analytics_at', name: 'analytics_at' }
@@ -128,7 +140,7 @@ export default {
 
       // search
       searchForm: {
-        slug: '',
+        login: '',
         status: ''
       },
 
@@ -157,12 +169,12 @@ export default {
     }
   },
   mounted() {
-    this.getRepos()
+    this.getDevelopers()
   },
   methods: {
 
-    preview(slug) {
-      window.open(`${process.env.WEB_URL}/repos/${slug}`)
+    preview(login) {
+      window.open(`${process.env.WEB_URL}/developer/${login}`)
     },
 
     github(url) {
@@ -170,7 +182,7 @@ export default {
     },
 
     sort() {
-      this.getRepos()
+      this.getDevelopers()
     },
 
     formatStatus(row) {
@@ -201,20 +213,23 @@ export default {
           id,
           status: 1
         }
-        switchRepos(params).then(() => {
-          this.getRepos()
+        switchDeveloper(params).then(() => {
+          this.getDevelopers()
         })
       }
     },
 
     // List
-    getRepos: function() {
+    getDevelopers: function() {
       const param = {
         page: this.page,
         limit: this.pageSize
       }
-      if (this.searchForm.slug !== '') {
-        param.slug = this.searchForm.slug
+      if (this.searchForm.login !== '') {
+        param.login = this.searchForm.login
+      }
+      if (this.searchForm.type !== '') {
+        param.type = this.searchForm.type
       }
       if (this.searchForm.status !== '') {
         param.status = this.searchForm.status
@@ -224,7 +239,7 @@ export default {
       }
 
       this.tableLoading = true
-      getRepos(param).then(res => {
+      getDevelopers(param).then(res => {
         this.list = res.rows
         this.total = res.count
         this.tableLoading = false
@@ -234,19 +249,21 @@ export default {
     handleSizeChange: function(size) {
       this.pageSize = size
       if ((this.page - 1) * size <= this.total) {
-        this.getRepos()
+        this.getDevelopers()
       }
     },
 
     handleCurrentChange: function(page) {
       this.page = page
-      this.getRepos()
+      this.getDevelopers()
     },
 
     resetForm(formName) {
+      this.pageSize = 10
+      this.page = 1
       this.tableSelections = []
       this.$refs[formName].resetFields()
-      this.getRepos()
+      this.getDevelopers()
     },
 
     editSubmit() {
@@ -255,9 +272,9 @@ export default {
           id: this.editRow.id,
           status: this.editForm.status
         }
-        editRepos(params).then(() => {
+        editDeveloper(params).then(() => {
           this.editVisible = false
-          this.getRepos()
+          this.getDevelopers()
         })
       }
     },

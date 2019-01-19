@@ -80,24 +80,24 @@ export const constantRouterMap = [
   {
     path: '/base',
     component: Layout,
-    name: 'Base',
-    redirect: '/base/repos',
-    meta: { title: 'Base', icon: 'documentation' },
+    name: 'Dataset',
+    redirect: '/dataset/repos',
+    meta: { title: 'Dataset', icon: 'documentation' },
     children: [
-      { path: '/base/repos', component: () => import('@/views/base/repos'), name: 'repos', meta: { title: 'Repos' }},
-      { path: '/base/developers', component: () => import('@/views/base/developers'), name: 'developers', meta: { title: 'Developers' }},
-      { path: '/base/sites', component: () => import('@/views/base/sites'), name: 'sites', meta: { title: 'Sites' }},
-      { path: '/base/wiki', component: () => import('@/views/base/sites'), name: 'wiki', meta: { title: 'Wiki' }},
-      { path: '/base/links', component: () => import('@/views/base/sites'), name: 'links', meta: { title: 'Links' }},
-      { path: '/base/news', component: () => import('@/views/base/sites'), name: 'news', meta: { title: 'News' }},
-      { path: '/base/articles', component: () => import('@/views/base/sites'), name: 'articles', meta: { title: 'Articles' }}
+      { path: '/dataset/repos', component: () => import('@/views/dataset/repos'), name: 'repos', meta: { title: 'Repos' }},
+      { path: '/dataset/developers', component: () => import('@/views/dataset/developers'), name: 'developers', meta: { title: 'Developers' }},
+      { path: '/dataset/sites', component: () => import('@/views/dataset/sites'), name: 'sites', meta: { title: 'Sites' }},
+      { path: '/dataset/wiki', component: () => import('@/views/dataset/wiki'), name: 'wiki', meta: { title: 'Wiki' }},
+      { path: '/dataset/links', component: () => import('@/views/dataset/links'), name: 'links', meta: { title: 'Links' }},
+      { path: '/dataset/news', component: () => import('@/views/dataset/news'), name: 'news', meta: { title: 'News' }},
+      { path: '/dataset/articles', component: () => import('@/views/dataset/articles'), name: 'articles', meta: { title: 'Articles' }}
     ]
   },
   {
     path: '/ecosystems',
     component: Layout,
     name: 'Ecosystems',
-    redirect: '/ecosystems/index',
+    redirect: '/ecosystem/index',
     meta: { title: 'Ecosystems', icon: 'tree' },
     children: [
       { path: '/ecosystem/index', component: () => import('@/views/ecosystem/index'), name: 'ecosystems_index', meta: { title: 'List' }},

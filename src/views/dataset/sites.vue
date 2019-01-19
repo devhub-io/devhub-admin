@@ -7,6 +7,9 @@
         <el-form-item label="Title" prop="title">
           <el-input v-model="searchForm.title" placeholder="Input..."/>
         </el-form-item>
+        <el-form-item label="Url" prop="url">
+          <el-input v-model="searchForm.url" type="url" placeholder="Input..."/>
+        </el-form-item>
         <el-form-item label="Status" prop="status">
           <el-select v-model="searchForm.status" clearable placeholder="Select...">
             <el-option
@@ -59,8 +62,8 @@
           <div>{{ scope.row.created_at || '--' }}</div>
         </template>
       </el-table-column>
-      <el-table-column :formatter="formatStatus" prop="is_enable" label="Status" align="center" width="100"/>
-      <el-table-column label="Operating" fixed="right" width="300">
+      <el-table-column :formatter="formatStatus" prop="status" label="Status" align="center" width="100"/>
+      <el-table-column label="Operating" fixed="right" width="250">
         <template slot-scope="scope">
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.url)">Preview</el-button>
@@ -161,7 +164,7 @@ export default {
 
     formatStatus(row) {
       for (let i = 0; i < this.status_lists.length; i++) {
-        if (this.status_lists[i].value === row.is_enable) {
+        if (this.status_lists[i].value === row.status) {
           return this.status_lists[i].name
         }
       }
@@ -205,6 +208,9 @@ export default {
       if (this.searchForm.status !== '') {
         param.status = this.searchForm.status
       }
+      if (this.searchForm.url !== '') {
+        param.url = this.searchForm.url
+      }
       if (this.sortForm.sort_type !== '') {
         param.sort_type = this.sortForm.sort_type
       }
@@ -230,6 +236,8 @@ export default {
     },
 
     resetForm(formName) {
+      this.pageSize = 10
+      this.page = 1
       this.tableSelections = []
       this.$refs[formName].resetFields()
       this.getSites()

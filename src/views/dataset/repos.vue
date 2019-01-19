@@ -17,13 +17,10 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="getEcosystems">Query</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="getRepos">Query</el-button>
         </el-form-item>
         <el-form-item>
           <el-button @click="resetForm('searchForm')">Clear</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="el-icon-plus" @click="showCreate">Create</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -47,32 +44,37 @@
     <el-table v-loading="tableLoading" ref="multipleTable" :data="list" stripe style="width: 100%" @select="handleSelect" @select-all="handleSelectAll">
       <el-table-column type="selection" width="50"/>
       <el-table-column prop="id" label="#" width="100" />
-      <el-table-column prop="title" label="Title" width="100" />
-      <el-table-column prop="slug" label="Slug" width="130" />
+      <el-table-column prop="cover" label="Cover" width="150">
+        <template slot-scope="scope">
+          <img :src="scope.row.cover" alt="" width="100">
+        </template>
+      </el-table-column>
+      <el-table-column prop="title" label="Title" width="200" />
       <el-table-column prop="statistics" label="Statistics" width="200">
         <template slot-scope="scope">
+          <div>stargazers_count: {{ scope.row.stargazers_count }}</div>
           <div>view_number: {{ scope.row.view_number }}</div>
-          <div>sort: {{ scope.row.sort }}</div>
         </template>
       </el-table-column>
       <el-table-column prop="time" label="Time" width="200">
         <template slot-scope="scope">
-          <div>updated_at</div>
-          <div>{{ scope.row.updated_at }}</div>
-          <div>created_at</div>
-          <div>{{ scope.row.created_at || '--' }}</div>
+          <div>fetched_at</div>
+          <div>{{ scope.row.fetched_at }}</div>
+          <div>analytics_at</div>
+          <div>{{ scope.row.analytics_at || '--' }}</div>
         </template>
       </el-table-column>
       <el-table-column :formatter="formatStatus" prop="status" label="Status" align="center" width="100"/>
-      <el-table-column prop="homepage" label="Homepage" width="150"/>
-      <el-table-column prop="github" label="Github" width="150" />
-      <el-table-column prop="wiki" label="Wiki" width="150" />
-      <el-table-column label="Operating" fixed="right" width="250">
+      <el-table-column prop="language" label="Language" align="center" width="120" />
+      <el-table-column prop="slug" label="Slug" align="center" width="150" />
+      <el-table-column prop="category_id" label="Category" align="center" width="100" />
+      <el-table-column label="Operating" fixed="right" width="300">
         <template slot-scope="scope">
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.slug)">Preview</el-button>
+            <el-button size="small" @click="github(scope.row.github)">Github</el-button>
+            <el-button size="small">Fetch</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
-            <el-button size="small" @click="showCollections(scope.row)">Collections</el-button>
           </el-button-group>
         </template>
       </el-table-column>
@@ -85,26 +87,8 @@
     </el-col>
 
     <!--Edit-->
-    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title}`" size="tiny">
+    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title} [${editRow.slug}]`" size="tiny">
       <el-form ref="paymentOrderForm" :model="editForm" label-width="120px">
-        <el-form-item label="Title" prop="title">
-          <el-input v-model="editForm.title" type="text"/>
-        </el-form-item>
-        <el-form-item label="Slug" prop="slug">
-          <el-input v-model="editForm.slug" type="text"/>
-        </el-form-item>
-        <el-form-item label="Homepage" prop="homepage">
-          <el-input v-model="editForm.homepage" type="url"/>
-        </el-form-item>
-        <el-form-item label="Github" prop="github">
-          <el-input v-model="editForm.github" type="url"/>
-        </el-form-item>
-        <el-form-item label="Wiki" prop="wiki">
-          <el-input v-model="editForm.wiki" type="url"/>
-        </el-form-item>
-        <el-form-item label="Sort" prop="sort">
-          <el-input v-model="editForm.sort" type="number"/>
-        </el-form-item>
         <el-form-item label="Status" prop="status">
           <el-select v-model="editForm.status" clearable placeholder="Select...">
             <el-option
@@ -120,24 +104,11 @@
         <el-button :loading="editLoading" type="primary" @click="editSubmit">Submit</el-button>
       </span>
     </el-dialog>
-
-    <!--Create-->
-    <el-dialog :visible.sync="createVisible" title="Create" size="tiny">
-      <el-form ref="paymentOrderForm" :model="createForm" label-width="120px">
-        <el-form-item label="Title" prop="title">
-          <el-input v-model="createForm.title" type="text"/>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="createVisible = false">Cancel</el-button>
-        <el-button :loading="createLoading" type="primary" @click="createSubmit">Submit</el-button>
-      </span>
-    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getEcosystems, switchEcosystem, editEcosystem, createEcosystem } from '@/api/ecosystem'
+import { getRepos, switchRepos, editRepos } from '@/api/app'
 
 export default {
   data() {
@@ -149,9 +120,10 @@ export default {
         { value: 2, name: 'Delete' }
       ],
       sort_type: [
+        { value: 'stargazers_count', name: 'stargazers_count' },
         { value: 'view_number', name: 'view_number' },
-        { value: 'updated_at', name: 'updated_at' },
-        { value: 'sort', name: 'sort' }
+        { value: 'fetched_at', name: 'fetched_at' },
+        { value: 'analytics_at', name: 'analytics_at' }
       ],
 
       // search
@@ -181,27 +153,24 @@ export default {
       },
       editVisible: false,
       editLoading: false,
-      editRow: {},
-
-      // Create
-      createForm: {
-        title: ''
-      },
-      createVisible: false,
-      createLoading: false
+      editRow: {}
     }
   },
   mounted() {
-    this.getEcosystems()
+    this.getRepos()
   },
   methods: {
 
     preview(slug) {
-      window.open(`${process.env.WEB_URL}/ecosystem/${slug}`)
+      window.open(`${process.env.WEB_URL}/repos/${slug}`)
+    },
+
+    github(url) {
+      window.open(url)
     },
 
     sort() {
-      this.getEcosystems()
+      this.getRepos()
     },
 
     formatStatus(row) {
@@ -232,23 +201,20 @@ export default {
           id,
           status: 1
         }
-        switchEcosystem(params).then(() => {
-          this.getEcosystems()
+        switchRepos(params).then(() => {
+          this.getRepos()
         })
       }
     },
 
     // List
-    getEcosystems: function() {
+    getRepos: function() {
       const param = {
         page: this.page,
         limit: this.pageSize
       }
       if (this.searchForm.slug !== '') {
         param.slug = this.searchForm.slug
-      }
-      if (this.searchForm.type !== '') {
-        param.type = this.searchForm.type
       }
       if (this.searchForm.status !== '') {
         param.status = this.searchForm.status
@@ -258,7 +224,7 @@ export default {
       }
 
       this.tableLoading = true
-      getEcosystems(param).then(res => {
+      getRepos(param).then(res => {
         this.list = res.rows
         this.total = res.count
         this.tableLoading = false
@@ -268,13 +234,13 @@ export default {
     handleSizeChange: function(size) {
       this.pageSize = size
       if ((this.page - 1) * size <= this.total) {
-        this.getEcosystems()
+        this.getRepos()
       }
     },
 
     handleCurrentChange: function(page) {
       this.page = page
-      this.getEcosystems()
+      this.getRepos()
     },
 
     resetForm(formName) {
@@ -282,42 +248,25 @@ export default {
       this.page = 1
       this.tableSelections = []
       this.$refs[formName].resetFields()
-      this.getEcosystems()
+      this.getRepos()
     },
 
     editSubmit() {
       if (this.editForm.status !== '') {
-        const params = Object.assign({}, this.editForm)
-        this.editLoading = true
-        editEcosystem(params).then(() => {
+        const params = {
+          id: this.editRow.id,
+          status: this.editForm.status
+        }
+        editRepos(params).then(() => {
           this.editVisible = false
-          this.editLoading = false
-          this.getEcosystems()
+          this.getRepos()
         })
       }
     },
     showEdit(row) {
-      this.editForm = row
+      this.editForm.status = ''
+      this.editRow = row
       this.editVisible = true
-    },
-    showCreate() {
-      this.createVisible = true
-    },
-    createSubmit() {
-      if (this.createForm.title !== '') {
-        const params = {
-          title: this.createForm.title
-        }
-        this.createLoading = true
-        createEcosystem(params).then(() => {
-          this.createVisible = false
-          this.createLoading = false
-          this.getEcosystems()
-        })
-      }
-    },
-    showCollections(row) {
-      this.$router.push(`/ecosystem/${row.id}/collections?title=${row.title}`)
     }
   }
 }
