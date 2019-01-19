@@ -1,5 +1,13 @@
 import request from '@/utils/request'
 
+export function getQueueJobs(params) {
+  return request({
+    url: `/admin/queue_jobs`,
+    method: 'get',
+    params: params
+  })
+}
+
 export function getSites(params) {
   return request({
     url: `/admin/sites`,

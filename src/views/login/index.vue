@@ -13,8 +13,6 @@
 </template>
 
 <script>
-import { captchaInfo } from '@/api/user'
-
 export default {
   name: 'Login',
   components: { },
@@ -71,25 +69,7 @@ export default {
       immediate: true
     }
   },
-  mounted() {
-    // this.getCaptcha()
-  },
   methods: {
-    getCaptcha() {
-      captchaInfo().then(res => {
-        if (res.code === 200) {
-          this.captcha.url = res.captchaUrl
-          this.captcha.uuid = res.captchaUuid
-        }
-      })
-    },
-    showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
-      } else {
-        this.passwordType = 'password'
-      }
-    },
     handleLogin() {
       window.location.href = `${process.env.BASE_API}/passport/github?source=${encodeURIComponent(process.env.ADMIN_URL + '/auth')}`
     }

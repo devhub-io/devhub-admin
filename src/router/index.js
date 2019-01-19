@@ -121,11 +121,11 @@ export const constantRouterMap = [
     path: '/system',
     component: Layout,
     name: 'System',
-    redirect: '/partners',
+    redirect: '/queue_jobs',
     meta: { title: 'System', icon: 'component' },
     children: [
-      { path: '/users', component: () => import('@/views/user/Users'), name: 'system', meta: { title: 'System' }},
-      { path: '/users', component: () => import('@/views/user/Users'), name: 'system1', meta: { title: 'System' }}
+      { path: '/queue_jobs', component: () => import('@/views/system/queue_jobs'), name: 'queue_jobs', meta: { title: 'Queue' }},
+      { path: '/users', component: () => import('@/views/user/users'), name: 'users', meta: { title: 'Users' }}
     ]
   }
 ]

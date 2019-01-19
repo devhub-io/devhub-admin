@@ -6,3 +6,11 @@ export function authToken() {
     method: 'get'
   })
 }
+
+export function getUsers(params) {
+  return request({
+    url: `/admin/users`,
+    method: 'get',
+    params: params
+  })
+}

@@ -4,11 +4,11 @@
     <!--Tools-->
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form ref="searchForm" :model="searchForm" :inline="true" >
-        <el-form-item label="Title" prop="title">
-          <el-input v-model="searchForm.title" placeholder="Input..."/>
+        <el-form-item label="Name" prop="name">
+          <el-input v-model="searchForm.name" placeholder="Input..."/>
         </el-form-item>
-        <el-form-item label="Url" prop="url">
-          <el-input v-model="searchForm.url" type="url" placeholder="http://"/>
+        <el-form-item label="Email" prop="email">
+          <el-input v-model="searchForm.email" placeholder="Input..."/>
         </el-form-item>
         <el-form-item label="Status" prop="status">
           <el-select v-model="searchForm.status" clearable placeholder="Select...">
@@ -20,7 +20,7 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="getWiki">Query</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="getUsers">Query</el-button>
         </el-form-item>
         <el-form-item>
           <el-button @click="resetForm('searchForm')">Clear</el-button>
@@ -47,8 +47,13 @@
     <el-table v-loading="tableLoading" ref="multipleTable" :data="list" stripe style="width: 100%" @select="handleSelect" @select-all="handleSelectAll">
       <el-table-column type="selection" width="50"/>
       <el-table-column prop="id" label="#" width="100" />
-      <el-table-column prop="title" label="Title" width="150" />
-      <el-table-column prop="url" label="Url" width="200" />
+      <el-table-column prop="avatar" label="Avatar" width="150">
+        <template slot-scope="scope">
+          <img :src="scope.row.avatar" alt="" width="100">
+        </template>
+      </el-table-column>
+      <el-table-column prop="name" label="Name" width="100" />
+      <el-table-column prop="email" label="Email" width="200" />
       <el-table-column prop="statistics" label="Statistics" width="100">
         <template slot-scope="scope">
           <div>-</div>
@@ -102,7 +107,7 @@
 </template>
 
 <script>
-import { getWiki, switchDeveloper, editDeveloper } from '@/api/app'
+import { getUsers } from '@/api/user'
 
 export default {
   data() {
@@ -114,14 +119,15 @@ export default {
         { value: 2, name: 'Delete' }
       ],
       sort_type: [
-        { value: 'sort', name: 'sort' },
+        { value: 'last_activated_at', name: 'last_activated_at' },
         { value: 'created_at', name: 'created_at' },
         { value: 'updated_at', name: 'updated_at' }
       ],
 
       // search
       searchForm: {
-        title: '',
+        name: '',
+        email: '',
         status: ''
       },
 
@@ -150,7 +156,7 @@ export default {
     }
   },
   mounted() {
-    this.getWiki()
+    this.getUsers()
   },
   methods: {
 
@@ -159,7 +165,7 @@ export default {
     },
 
     sort() {
-      this.getWiki()
+      this.getUsers()
     },
 
     formatStatus(row) {
@@ -186,37 +192,37 @@ export default {
         id.push(i.id)
       })
       if (id.length > 0) {
-        const params = {
-          id,
-          status: 1
-        }
-        switchDeveloper(params).then(() => {
-          this.getWiki()
-        })
+        // const params = {
+        //   id,
+        //   status: 1
+        // }
+        // switchDeveloper(params).then(() => {
+        //   this.getUsers()
+        // })
       }
     },
 
     // List
-    getWiki: function() {
+    getUsers: function() {
       const param = {
         page: this.page,
         limit: this.pageSize
       }
-      if (this.searchForm.title !== '') {
-        param.title = this.searchForm.title
+      if (this.searchForm.name !== '') {
+        param.name = this.searchForm.name
       }
       if (this.searchForm.status !== '') {
         param.status = this.searchForm.status
       }
-      if (this.searchForm.url !== '') {
-        param.url = this.searchForm.url
+      if (this.searchForm.email !== '') {
+        param.email = this.searchForm.email
       }
       if (this.sortForm.sort_type !== '') {
         param.sort_type = this.sortForm.sort_type
       }
 
       this.tableLoading = true
-      getWiki(param).then(res => {
+      getUsers(param).then(res => {
         this.list = res.rows
         this.total = res.count
         this.tableLoading = false
@@ -226,13 +232,13 @@ export default {
     handleSizeChange: function(size) {
       this.pageSize = size
       if ((this.page - 1) * size <= this.total) {
-        this.getWiki()
+        this.getUsers()
       }
     },
 
     handleCurrentChange: function(page) {
       this.page = page
-      this.getWiki()
+      this.getUsers()
     },
 
     resetForm(formName) {
@@ -240,19 +246,19 @@ export default {
       this.page = 1
       this.tableSelections = []
       this.$refs[formName].resetFields()
-      this.getWiki()
+      this.getUsers()
     },
 
     editSubmit() {
       if (this.editForm.status !== '') {
-        const params = {
-          id: this.editRow.id,
-          status: this.editForm.status
-        }
-        editDeveloper(params).then(() => {
-          this.editVisible = false
-          this.getWiki()
-        })
+        // const params = {
+        //   id: this.editRow.id,
+        //   status: this.editForm.status
+        // }
+        // editDeveloper(params).then(() => {
+        //   this.editVisible = false
+        //   this.getUsers()
+        // })
       }
     },
     showEdit(row) {

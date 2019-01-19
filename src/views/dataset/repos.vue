@@ -87,7 +87,7 @@
     </el-col>
 
     <!--Edit-->
-    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title} [${editRow.slug}]`" size="tiny">
+    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title} [${editRow.slug}]`">
       <el-form ref="paymentOrderForm" :model="editForm" label-width="120px">
         <el-form-item label="Status" prop="status">
           <el-select v-model="editForm.status" clearable placeholder="Select...">

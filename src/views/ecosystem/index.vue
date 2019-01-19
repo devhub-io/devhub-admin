@@ -86,7 +86,7 @@
     </el-col>
 
     <!--Edit-->
-    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title}`" size="tiny">
+    <el-dialog :visible.sync="editVisible" :title="`Edit ${editRow.title}`">
       <el-form ref="paymentOrderForm" :model="editForm" label-width="120px">
         <el-form-item label="Title" prop="title">
           <el-input v-model="editForm.title" type="text"/>
@@ -123,7 +123,7 @@
     </el-dialog>
 
     <!--Create-->
-    <el-dialog :visible.sync="createVisible" title="Create" size="tiny">
+    <el-dialog :visible.sync="createVisible" title="Create">
       <el-form ref="paymentOrderForm" :model="createForm" label-width="120px">
         <el-form-item label="Title" prop="title">
           <el-input v-model="createForm.title" type="text"/>
