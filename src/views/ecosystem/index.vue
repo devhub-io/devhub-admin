@@ -67,12 +67,13 @@
       <el-table-column prop="homepage" label="Homepage" width="150"/>
       <el-table-column prop="github" label="Github" width="150" />
       <el-table-column prop="wiki" label="Wiki" width="150" />
-      <el-table-column label="Operating" fixed="right" width="250">
+      <el-table-column label="Operating" fixed="right" width="350">
         <template slot-scope="scope">
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.slug)">Preview</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
             <el-button size="small" @click="showCollections(scope.row)">Collections</el-button>
+            <el-button size="small" @click="showImport(scope.row)">Import</el-button>
           </el-button-group>
         </template>
       </el-table-column>
@@ -318,6 +319,9 @@ export default {
     },
     showCollections(row) {
       this.$router.push(`/ecosystem/${row.id}/collections?title=${row.title}`)
+    },
+    showImport(row) {
+      this.$router.push(`/ecosystem/${row.id}/import?title=${row.title}`)
     }
   }
 }

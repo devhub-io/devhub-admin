@@ -8,7 +8,7 @@
           <el-input v-model="searchForm.title" placeholder="Input..."/>
         </el-form-item>
         <el-form-item label="Url" prop="url">
-          <el-input v-model="searchForm.url" type="url" placeholder="Input..."/>
+          <el-input v-model="searchForm.url" type="url" placeholder="http://"/>
         </el-form-item>
         <el-form-item label="Status" prop="status">
           <el-select v-model="searchForm.status" clearable placeholder="Select...">

@@ -7,7 +7,7 @@
         <el-form-item label="Title" prop="title">
           <el-input v-model="searchForm.title" placeholder="Input..."/>
         </el-form-item>
-        <el-form-item label="Post Date" prop="url">
+        <el-form-item label="Post Date" prop="post_date">
           <el-date-picker
             v-model="searchForm.post_date"
             type="date"
