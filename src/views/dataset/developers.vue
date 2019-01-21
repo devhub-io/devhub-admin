@@ -81,7 +81,7 @@
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.login)">Preview</el-button>
             <el-button size="small" @click="github(scope.row.html_url)">Github</el-button>
-            <el-button size="small">Fetch</el-button>
+            <el-button size="small" @click="fetch(scope.row.html_url)">Fetch</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
           </el-button-group>
         </template>
@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import { getDevelopers, switchDeveloper, editDeveloper } from '@/api/app'
+import { getDevelopers, switchDeveloper, editDeveloper, fetchLink } from '@/api/app'
 
 export default {
   data() {
@@ -282,6 +282,9 @@ export default {
       this.editForm.status = ''
       this.editRow = row
       this.editVisible = true
+    },
+    fetch(url) {
+      fetchLink({ url: url }).then(() => {})
     }
   }
 }

@@ -95,3 +95,27 @@ export function editDeveloper(params) {
     data: params
   })
 }
+
+export function replayQueueJob(params) {
+  return request({
+    url: `/admin/queue/replay`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function deleteQueueJob(params) {
+  return request({
+    url: `/admin/queue/delete`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function fetchLink(params) {
+  return request({
+    url: `/admin/fetch`,
+    method: 'post',
+    data: params
+  })
+}

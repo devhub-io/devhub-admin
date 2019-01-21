@@ -67,7 +67,7 @@
         <template slot-scope="scope">
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.url)">Preview</el-button>
-            <el-button size="small">Fetch</el-button>
+            <el-button size="small" @click="fetch(scope.row.url)">Fetch</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
           </el-button-group>
         </template>
@@ -102,7 +102,7 @@
 </template>
 
 <script>
-import { getLinks, switchDeveloper, editDeveloper } from '@/api/app'
+import { getLinks, switchDeveloper, editDeveloper, fetchLink } from '@/api/app'
 
 export default {
   data() {
@@ -259,6 +259,9 @@ export default {
       this.editForm.status = ''
       this.editRow = row
       this.editVisible = true
+    },
+    fetch(url) {
+      fetchLink({ url: url }).then(() => {})
     }
   }
 }

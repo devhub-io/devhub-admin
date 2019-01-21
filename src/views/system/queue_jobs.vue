@@ -58,9 +58,8 @@
       <el-table-column label="Operating" fixed="right" width="250">
         <template slot-scope="scope">
           <el-button-group>
-            <el-button size="small" @click="preview(scope.row.url)">Preview</el-button>
-            <el-button size="small">Fetch</el-button>
-            <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
+            <el-button size="small" @click="replayJob(scope.row.id)">Replay</el-button>
+            <el-button size="small" @click="deleteJob(scope.row.id)">Delete</el-button>
           </el-button-group>
         </template>
       </el-table-column>
@@ -75,7 +74,7 @@
 </template>
 
 <script>
-import { getQueueJobs, switchDeveloper, editDeveloper } from '@/api/app'
+import { getQueueJobs, replayQueueJob, deleteQueueJob } from '@/api/app'
 
 export default {
   data() {
@@ -144,13 +143,13 @@ export default {
         id.push(i.id)
       })
       if (id.length > 0) {
-        const params = {
-          id,
-          status: 1
-        }
-        switchDeveloper(params).then(() => {
-          this.getQueueJobs()
-        })
+        // const params = {
+        //   id,
+        //   status: 1
+        // }
+        // switchDeveloper(params).then(() => {
+        //   this.getQueueJobs()
+        // })
       }
     },
 
@@ -197,20 +196,36 @@ export default {
 
     editSubmit() {
       if (this.editForm.status !== '') {
-        const params = {
-          id: this.editRow.id,
-          status: this.editForm.status
-        }
-        editDeveloper(params).then(() => {
-          this.editVisible = false
-          this.getQueueJobs()
-        })
+        // const params = {
+        //   id: this.editRow.id,
+        //   status: this.editForm.status
+        // }
+        // editDeveloper(params).then(() => {
+        //   this.editVisible = false
+        //   this.getQueueJobs()
+        // })
       }
     },
     showEdit(row) {
       this.editForm.status = ''
       this.editRow = row
       this.editVisible = true
+    },
+    replayJob(id) {
+      replayQueueJob({ id: id }).then(() => {
+        this.getQueueJobs()
+      })
+    },
+    deleteJob(id) {
+      this.$confirm(`Confirm delete this Job [${id}] ?`, 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        deleteQueueJob({ id: id }).then(() => {
+          this.getQueueJobs()
+        })
+      })
     }
   }
 }

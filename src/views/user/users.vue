@@ -71,8 +71,6 @@
       <el-table-column label="Operating" fixed="right" width="250">
         <template slot-scope="scope">
           <el-button-group>
-            <el-button size="small" @click="preview(scope.row.url)">Preview</el-button>
-            <el-button size="small">Fetch</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
           </el-button-group>
         </template>

@@ -49,6 +49,7 @@
       <el-table-column prop="id" label="#" width="100" />
       <el-table-column prop="title" label="Title" width="150" />
       <el-table-column prop="url" label="Url" width="200" />
+      <el-table-column prop="screenshot" label="ScreenShot" width="200" />
       <el-table-column prop="statistics" label="Statistics" width="100">
         <template slot-scope="scope">
           <div>-</div>
@@ -67,7 +68,7 @@
         <template slot-scope="scope">
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.url)">Preview</el-button>
-            <el-button size="small">Fetch</el-button>
+            <el-button size="small" @click="fetch(scope.row.url)">Fetch</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
           </el-button-group>
         </template>
@@ -102,7 +103,7 @@
 </template>
 
 <script>
-import { getSites, switchDeveloper, editDeveloper } from '@/api/app'
+import { getSites, switchDeveloper, editDeveloper, fetchLink } from '@/api/app'
 
 export default {
   data() {
@@ -259,6 +260,9 @@ export default {
       this.editForm.status = ''
       this.editRow = row
       this.editVisible = true
+    },
+    fetch(url) {
+      fetchLink({ url: url }).then(() => {})
     }
   }
 }
