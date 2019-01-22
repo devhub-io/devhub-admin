@@ -318,7 +318,7 @@ export default {
       }
     },
     showCollections(row) {
-      this.$router.push(`/ecosystem/${row.id}/collections?title=${row.title}`)
+      this.$router.push(`/ecosystem/${row.id}/collections?title=${row.title}&slug=${row.slug}`)
     },
     showImport(row) {
       this.$router.push(`/ecosystem/${row.id}/import?title=${row.title}`)

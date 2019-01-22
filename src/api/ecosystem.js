@@ -72,6 +72,14 @@ export function getEcosystemCollectionItems(params) {
   })
 }
 
+export function switchEcosystemCollectionItem(params) {
+  return request({
+    url: `/admin/ecosystem/collection/item/switch`,
+    method: 'post',
+    data: params
+  })
+}
+
 export function createEcosystemCollectionItem(params) {
   return request({
     url: `/admin/ecosystem/collection/item/create`,
@@ -99,6 +107,22 @@ export function deleteEcosystemCollectionItem(params) {
 export function fetchEcosystemCollection(params) {
   return request({
     url: `/admin/ecosystem/collection/fetch`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function switchEcosystemCollection(params) {
+  return request({
+    url: `/admin/ecosystem/collection/switch`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function moveEcosystemCollection(params) {
+  return request({
+    url: `/admin/ecosystem/collection/move`,
     method: 'post',
     data: params
   })

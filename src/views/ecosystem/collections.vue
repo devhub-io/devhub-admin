@@ -19,12 +19,37 @@
           <el-button
             type="text"
             size="mini"
+            @click="selectAll">
+            Select all
+          </el-button>
+          <el-button
+            type="text"
+            size="mini"
+            @click="clearSelect">
+            Clear
+          </el-button>
+          <el-button
+            type="text"
+            size="mini"
             @click="enable">
-            Select enable
+            Enable
+          </el-button>
+          <el-button
+            type="text"
+            size="mini"
+            @click="disable">
+            Disable
+          </el-button>
+          <el-button
+            type="text"
+            size="mini"
+            @click="move">
+            Move
           </el-button>
         </div>
         <el-tree
           v-loading="collectionsLoading"
+          ref="tree"
           :data="collections"
           :expand-on-click-node="false"
           show-checkbox
@@ -49,7 +74,7 @@
               <el-button
                 type="text"
                 size="mini"
-                @click="move(data)">
+                @click="moveNode(data)">
                 Move
               </el-button>
               <el-button
@@ -67,7 +92,8 @@
               </el-button>
               <el-button
                 type="text"
-                size="mini">
+                size="mini"
+                @click="preview(data)">
                 Preview
               </el-button>
             </span>
@@ -118,7 +144,7 @@
     </el-dialog>
 
     <!--Move-->
-    <el-dialog :visible.sync="moveVisible" :title="`Move [${selectNode.title}]`">
+    <el-dialog :visible.sync="moveVisible" :title="`Move [${selectNode.title || '--'}]`">
       <el-form ref="paymentOrderForm" :model="moveForm" label-width="120px">
         <el-form-item label="Parent" prop="parent_id">
           <el-cascader
@@ -141,7 +167,14 @@
     <!--Items-->
     <el-dialog :visible.sync="itemsVisible" :title="`[${selectNode.id}]${selectNode.title} Items`" width="70%">
       <el-form ref="paymentOrderForm" :model="itemsForm" label-width="120px">
-        <el-button @click="createItemVisible = true">Create Item</el-button>
+        <el-row>
+          <el-col :span="3">
+            <el-button @click="createItemVisible = true">Create Item</el-button>
+          </el-col>
+          <el-col :span="4" :offset="17">
+            <el-button @click="enableAllItems">Enable all</el-button>
+          </el-col>
+        </el-row>
         <el-row v-loading="itemsListLoading" :gutter="1">
           <el-col v-for="item in items" :key="item.id" :span="24" class="item-col">
             <el-card shadow="always" class="item-card">
@@ -309,7 +342,10 @@ import {
   getEcosystemCollectionItems,
   createEcosystemCollectionItem,
   editEcosystemCollectionItem,
-  deleteEcosystemCollectionItem
+  deleteEcosystemCollectionItem,
+  switchEcosystemCollection,
+  moveEcosystemCollection,
+  switchEcosystemCollectionItem
 } from '@/api/ecosystem'
 import {
   getSites,
@@ -357,6 +393,7 @@ export default {
       },
       moveVisible: false,
       moveLoading: false,
+      moveType: 1,
 
       // Create
       createForm: {
@@ -397,12 +434,71 @@ export default {
   },
   mounted() {
     this.title = this.$route.query.title || '--'
+    this.slug = this.$route.query.slug || '--'
     this.topic_id = this.$route.params.id || 0
     this.getEcosystemCollections()
   },
   methods: {
-    enable() {
+    visitNode(node, hashMap, array) {
+      if (!hashMap[node.id]) {
+        hashMap[node.id] = true
+        array.push(node)
+      }
+    },
+    convertTreeToList(root) {
+      const stack = []
+      const array = []
+      const hashMap = {}
+      for (let i = root.length - 1; i >= 0; i--) {
+        stack.push(root[i])
+      }
 
+      while (stack.length !== 0) {
+        const node = stack.pop()
+        if (node.children === null || node.children === undefined) {
+          this.visitNode(node, hashMap, array)
+        } else {
+          for (let i = node.children.length - 1; i >= 0; i--) {
+            stack.push(node.children[i])
+          }
+        }
+      }
+
+      return array
+    },
+    allNodeId() {
+      const nodeData = this.$refs.tree.data
+      const list = this.convertTreeToList(nodeData)
+      const id = []
+      list.forEach(i => {
+        id.push(i.id)
+      })
+      return id
+    },
+    currentCheckId() {
+      return this.$refs.tree.getCheckedKeys()
+    },
+    clearSelect() {
+      this.$refs.tree.setCheckedKeys([])
+    },
+    selectAll() {
+      this.$refs.tree.setCheckedKeys(this.allNodeId())
+    },
+    enable() {
+      switchEcosystemCollection({ status: 1, id: this.currentCheckId() }).then(() => {
+        this.clearSelect()
+        this.getEcosystemCollections()
+      })
+    },
+    disable() {
+      switchEcosystemCollection({ status: 0, id: this.currentCheckId() }).then(() => {
+        this.clearSelect()
+        this.getEcosystemCollections()
+      })
+    },
+    move() {
+      this.moveVisible = true
+      this.moveType = 1
     },
 
     create() {
@@ -433,6 +529,9 @@ export default {
       }
     },
 
+    preview(data) {
+      window.open(`${process.env.WEB_URL}/ecosystem/${this.slug}/${data.slug}`)
+    },
     edit(data) {
       this.editVisible = true
       this.editForm = data
@@ -453,23 +552,32 @@ export default {
         this.getEcosystemCollections()
       })
     },
-    move(data) {
+    moveNode(data) {
       this.moveVisible = true
       this.selectNode = _.clone(data)
       this.moveForm.parent_id = []
+      this.moveType = 2
     },
     moveSubmit() {
       const parent_id = this.moveForm.parent_id[this.moveForm.parent_id.length - 1]
-      const params = {
-        id: this.selectNode.id,
-        parent_id: parent_id
-      }
       this.moveLoading = true
-      editEcosystemCollection(params).then(() => {
-        this.moveVisible = false
-        this.moveLoading = false
-        this.getEcosystemCollections()
-      })
+      if (this.moveType === 1) {
+        moveEcosystemCollection({ parent_id: parent_id, id: this.currentCheckId() }).then(() => {
+          this.moveVisible = false
+          this.moveLoading = false
+          this.getEcosystemCollections()
+        })
+      } else {
+        const params = {
+          id: this.selectNode.id,
+          parent_id: parent_id
+        }
+        editEcosystemCollection(params).then(() => {
+          this.moveVisible = false
+          this.moveLoading = false
+          this.getEcosystemCollections()
+        })
+      }
     },
 
     showItems(data) {
@@ -492,7 +600,6 @@ export default {
     },
 
     createItemSubmit() {
-      console.log(this.createItemForm)
       this.createItemLoading = true
       const params = {
         collection_id: this.selectNode.id,
@@ -515,6 +622,11 @@ export default {
       createEcosystemCollectionItem(params).then(() => {
         this.createItemLoading = false
         this.createItemVisible = false
+        this.getEcosystemCollectionItems()
+      })
+    },
+    enableAllItems() {
+      switchEcosystemCollectionItem({ status: 1, collection_id: this.selectNode.id }).then(() => {
         this.getEcosystemCollectionItems()
       })
     },
