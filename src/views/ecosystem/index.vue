@@ -49,6 +49,7 @@
       <el-table-column prop="id" label="#" width="100" />
       <el-table-column prop="title" label="Title" width="100" />
       <el-table-column prop="slug" label="Slug" width="130" />
+      <el-table-column prop="description" label="Description" width="200" />
       <el-table-column prop="statistics" label="Statistics" width="200">
         <template slot-scope="scope">
           <div>view_number: {{ scope.row.view_number }}</div>
@@ -93,6 +94,9 @@
         </el-form-item>
         <el-form-item label="Slug" prop="slug">
           <el-input v-model="editForm.slug" type="text"/>
+        </el-form-item>
+        <el-form-item label="Description" prop="description">
+          <el-input v-model="editForm.description" type="textarea"/>
         </el-form-item>
         <el-form-item label="Homepage" prop="homepage">
           <el-input v-model="editForm.homepage" type="url"/>
