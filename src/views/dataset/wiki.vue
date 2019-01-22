@@ -49,6 +49,7 @@
       <el-table-column prop="id" label="#" width="100" />
       <el-table-column prop="title" label="Title" width="150" />
       <el-table-column prop="url" label="Url" width="200" />
+      <el-table-column prop="summary" label="Summary" width="500" />
       <el-table-column prop="statistics" label="Statistics" width="100">
         <template slot-scope="scope">
           <div>-</div>
