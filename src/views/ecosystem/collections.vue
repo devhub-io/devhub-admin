@@ -214,7 +214,6 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="itemsVisible = false">Cancel</el-button>
-        <el-button :loading="itemsLoading" type="primary">Submit</el-button>
       </span>
     </el-dialog>
 

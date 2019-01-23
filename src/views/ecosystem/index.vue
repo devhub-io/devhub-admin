@@ -68,12 +68,13 @@
       <el-table-column prop="homepage" label="Homepage" width="150"/>
       <el-table-column prop="github" label="Github" width="150" />
       <el-table-column prop="wiki" label="Wiki" width="150" />
-      <el-table-column label="Operating" fixed="right" width="350">
+      <el-table-column label="Operating" fixed="right" width="400">
         <template slot-scope="scope">
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.slug)">Preview</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
             <el-button size="small" @click="showCollections(scope.row)">Collections</el-button>
+            <el-button size="small" @click="showAttributes(scope.row)">Attributes</el-button>
             <el-button size="small" @click="showImport(scope.row)">Import</el-button>
           </el-button-group>
         </template>
@@ -138,11 +139,79 @@
         <el-button :loading="createLoading" type="primary" @click="createSubmit">Submit</el-button>
       </span>
     </el-dialog>
+
+    <!--Attributes-->
+    <el-dialog :visible.sync="attributesVisible" :title="`[${row.title}] Attributes`" width="70%">
+      <el-form ref="paymentOrderForm" label-width="120px">
+        <el-button @click="createAttributeVisible = true">Create Attribute</el-button>
+        <el-row v-loading="attributesListLoading" :gutter="1">
+          <el-col v-for="item in attributes" :key="item.id" :span="24" class="item-col">
+            <el-card shadow="always" class="item-card">
+              <el-col :span="4">
+                <el-input-number v-model="item.sort" size="mini" @change="changeAttributeSort(item)"/>
+              </el-col>
+              <el-col :span="16">
+                <el-form-item label="Key">
+                  <el-input v-model="item.key"/>
+                </el-form-item>
+                <el-form-item label="Value">
+                  <el-input v-model="item.value" type="textarea"/>
+                </el-form-item>
+              </el-col>
+              <el-col :span="3" :offset="1">
+                <el-button
+                  type="text"
+                  size="mini"
+                  class="color-blue"
+                  @click="saveAttributeEdit(item)">
+                  Save
+                </el-button>
+                <el-button
+                  type="text"
+                  size="mini"
+                  class="color-red"
+                  @click="confirmAttributeDelete(item)">
+                  Delete
+                </el-button>
+              </el-col>
+            </el-card>
+          </el-col>
+        </el-row>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="attributesVisible = false">Cancel</el-button>
+      </span>
+    </el-dialog>
+
+    <!--Add Item-->
+    <el-dialog :visible.sync="createAttributeVisible" title="Create Attribute" width="40%">
+      <el-form ref="createAttributeForm" :model="createAttributeForm" label-width="120px">
+        <el-form-item label="Key" prop="key">
+          <el-input v-model="createAttributeForm.key" type="text"/>
+        </el-form-item>
+        <el-form-item label="Value" prop="value">
+          <el-input v-model="createAttributeForm.value" type="text"/>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="createAttributeVisible = false">Cancel</el-button>
+        <el-button :loading="createAttributeLoading" type="primary" @click="createAttributeSubmit">Submit</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getEcosystems, switchEcosystem, editEcosystem, createEcosystem } from '@/api/ecosystem'
+import {
+  getEcosystems,
+  switchEcosystem,
+  editEcosystem,
+  createEcosystem,
+  getEcosystemAttributes,
+  createEcosystemAttribute,
+  editEcosystemAttribute,
+  deleteEcosystemAttribute
+} from '@/api/ecosystem'
 
 export default {
   data() {
@@ -193,7 +262,19 @@ export default {
         title: ''
       },
       createVisible: false,
-      createLoading: false
+      createLoading: false,
+
+      // attributes
+      createAttributeVisible: false,
+      attributesVisible: false,
+      attributesListLoading: false,
+      createAttributeLoading: false,
+      attributes: [],
+      createAttributeForm: {
+        key: '',
+        value: ''
+      },
+      row: {}
     }
   },
   mounted() {
@@ -326,11 +407,60 @@ export default {
     },
     showImport(row) {
       this.$router.push(`/ecosystem/${row.id}/import?title=${row.title}`)
+    },
+    showAttributes(row) {
+      this.row = row
+      this.getEcosystemAttributes()
+      this.attributesVisible = true
+    },
+    getEcosystemAttributes() {
+      this.attributesListLoading = true
+      getEcosystemAttributes({ id: this.row.id }).then(res => {
+        this.attributes = res
+        this.attributesListLoading = false
+      })
+    },
+    changeAttributeSort(item) {
+      editEcosystemAttribute({ id: item.id, sort: item.sort }).then(() => {
+        this.getEcosystemAttributes()
+      })
+    },
+    confirmAttributeDelete(item) {
+      this.$confirm(`Confirm delete this attribute [${item.key}] ?`, 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        deleteEcosystemAttribute({ id: item.id }).then(() => {
+          this.getEcosystemAttributes()
+        })
+      })
+    },
+    createAttributeSubmit() {
+      const params = {
+        topic_id: this.row.id,
+        key: this.createAttributeForm.key,
+        value: this.createAttributeForm.value
+      }
+      this.createAttributeLoading = true
+      createEcosystemAttribute(params).then(() => {
+        this.createAttributeLoading = false
+        this.createAttributeVisible = false
+        this.getEcosystemAttributes()
+      })
+    },
+    saveAttributeEdit(item) {
+      editEcosystemAttribute({ id: item.id, key: item.key, value: item.value }).then(() => {
+        this.getEcosystemAttributes()
+      })
     }
   }
 }
 </script>
 
 <style scoped>
-
+  .item-card {
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
 </style>

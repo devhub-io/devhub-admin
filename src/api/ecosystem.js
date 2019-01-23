@@ -127,3 +127,35 @@ export function moveEcosystemCollection(params) {
     data: params
   })
 }
+
+export function getEcosystemAttributes(params) {
+  return request({
+    url: `/admin/ecosystem/attributes`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function createEcosystemAttribute(params) {
+  return request({
+    url: `/admin/ecosystem/attribute/create`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function editEcosystemAttribute(params) {
+  return request({
+    url: `/admin/ecosystem/attribute/edit`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function deleteEcosystemAttribute(params) {
+  return request({
+    url: `/admin/ecosystem/attribute/delete`,
+    method: 'post',
+    data: params
+  })
+}
