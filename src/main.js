@@ -19,16 +19,37 @@ import './errorLog' // error log
 import './permission' // permission control
 // import './mock' // simulation data
 
-// Map
-import VueAMap from 'vue-amap'
-Vue.use(VueAMap)
-VueAMap.initAMapApiLoader({
-  key: '7f47b82b0c5a4baf882f6b28cd1eebde',
-  plugin: ['AMap.Autocomplete', 'AMap.PlaceSearch', 'AMap.Scale',
-    'AMap.OverView', 'AMap.ToolBar', 'AMap.MapType',
-    'AMap.PolyEditor', 'AMap.CircleEditor'],
-  // 默认高德 sdk 版本为 1.4.4
-  v: '1.4.4'
+// Socket.io
+import io from 'socket.io-client'
+const socket = io(process.env.SOCKET_URL, {
+  query: {
+    room: 'default',
+    userId: `client_${Math.random()}`
+  },
+  transaction: ['websocket']
+})
+Vue.prototype.$socket = socket
+socket.on('connect', () => {
+  const id = socket.id
+  console.log('#connect,', id, socket)
+  socket.emit('ping', 'hi')
+  socket.on(id, msg => {
+    console.log('#receive,', msg)
+  })
+})
+socket.on('online', msg => {
+  console.log('#online,', msg)
+})
+socket.on('disconnect', msg => {
+  console.log('#disconnect', msg)
+})
+
+socket.on('disconnecting', () => {
+  console.log('#disconnecting')
+})
+
+socket.on('error', () => {
+  console.log('#error')
 })
 
 import * as filters from './filters' // global filters

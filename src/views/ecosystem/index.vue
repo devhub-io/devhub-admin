@@ -68,13 +68,14 @@
       <el-table-column prop="homepage" label="Homepage" width="150"/>
       <el-table-column prop="github" label="Github" width="150" />
       <el-table-column prop="wiki" label="Wiki" width="150" />
-      <el-table-column label="Operating" fixed="right" width="400">
+      <el-table-column label="Operating" fixed="right" width="350">
         <template slot-scope="scope">
           <el-button-group>
             <el-button size="small" @click="preview(scope.row.slug)">Preview</el-button>
             <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
             <el-button size="small" @click="showCollections(scope.row)">Collections</el-button>
             <el-button size="small" @click="showAttributes(scope.row)">Attributes</el-button>
+            <el-button size="small" @click="showSource(scope.row)">Source</el-button>
             <el-button size="small" @click="showImport(scope.row)">Import</el-button>
           </el-button-group>
         </template>
@@ -183,19 +184,68 @@
       </span>
     </el-dialog>
 
-    <!--Add Item-->
+    <!--Add Attribute-->
     <el-dialog :visible.sync="createAttributeVisible" title="Create Attribute" width="40%">
       <el-form ref="createAttributeForm" :model="createAttributeForm" label-width="120px">
         <el-form-item label="Key" prop="key">
           <el-input v-model="createAttributeForm.key" type="text"/>
         </el-form-item>
         <el-form-item label="Value" prop="value">
-          <el-input v-model="createAttributeForm.value" type="text"/>
+          <el-input v-model="createAttributeForm.value" type="textarea"/>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="createAttributeVisible = false">Cancel</el-button>
         <el-button :loading="createAttributeLoading" type="primary" @click="createAttributeSubmit">Submit</el-button>
+      </span>
+    </el-dialog>
+
+    <!--Source-->
+    <el-dialog :visible.sync="sourceVisible" :title="`[${row.title}] Source`" width="70%">
+      <el-form ref="paymentOrderForm" label-width="120px">
+        <el-button @click="createSourceVisible = true">Create Source</el-button>
+        <el-row v-loading="sourceListLoading" :gutter="1">
+          <el-col v-for="item in source" :key="item.id" :span="24" class="item-col">
+            <el-card shadow="always" class="item-card">
+              <el-col :span="16">
+                <el-form-item label="Source">
+                  <el-input v-model="item.source" readonly/>
+                </el-form-item>
+                <el-form-item label="Url">
+                  <el-input v-model="item.url" type="url" readonly/>
+                </el-form-item>
+              </el-col>
+              <el-col :span="3" :offset="1">
+                <el-button
+                  type="text"
+                  size="mini"
+                  class="color-red"
+                  @click="confirmSourceDelete(item)">
+                  Delete
+                </el-button>
+              </el-col>
+            </el-card>
+          </el-col>
+        </el-row>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="sourceVisible = false">Cancel</el-button>
+      </span>
+    </el-dialog>
+
+    <!--Add Source-->
+    <el-dialog :visible.sync="createSourceVisible" title="Create Attribute" width="40%">
+      <el-form ref="createAttributeForm" :model="createSourceForm" label-width="120px">
+        <el-form-item label="Source" prop="source">
+          <el-input v-model="createSourceForm.source" type="text"/>
+        </el-form-item>
+        <el-form-item label="Url" prop="url">
+          <el-input v-model="createSourceForm.url" type="url"/>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="createSourceVisible = false">Cancel</el-button>
+        <el-button :loading="createSourceLoading" type="primary" @click="createSourceSubmit">Submit</el-button>
       </span>
     </el-dialog>
   </div>
@@ -210,7 +260,10 @@ import {
   getEcosystemAttributes,
   createEcosystemAttribute,
   editEcosystemAttribute,
-  deleteEcosystemAttribute
+  deleteEcosystemAttribute,
+  getEcosystemSource,
+  createEcosystemSource,
+  deleteEcosystemSource
 } from '@/api/ecosystem'
 
 export default {
@@ -264,6 +317,8 @@ export default {
       createVisible: false,
       createLoading: false,
 
+      row: {},
+
       // attributes
       createAttributeVisible: false,
       attributesVisible: false,
@@ -274,7 +329,17 @@ export default {
         key: '',
         value: ''
       },
-      row: {}
+
+      // attributes
+      createSourceVisible: false,
+      sourceVisible: false,
+      sourceListLoading: false,
+      createSourceLoading: false,
+      source: [],
+      createSourceForm: {
+        source: '',
+        url: ''
+      }
     }
   },
   mounted() {
@@ -452,6 +517,42 @@ export default {
     saveAttributeEdit(item) {
       editEcosystemAttribute({ id: item.id, key: item.key, value: item.value }).then(() => {
         this.getEcosystemAttributes()
+      })
+    },
+    showSource(row) {
+      this.row = row
+      this.getEcosystemSource()
+      this.sourceVisible = true
+    },
+    getEcosystemSource() {
+      this.attributesListLoading = true
+      getEcosystemSource({ id: this.row.id }).then(res => {
+        this.source = res
+        this.sourceListLoading = false
+      })
+    },
+    confirmSourceDelete(item) {
+      this.$confirm(`Confirm delete this source [${item.source}] ?`, 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        deleteEcosystemSource({ id: item.id }).then(() => {
+          this.getEcosystemSource()
+        })
+      })
+    },
+    createSourceSubmit() {
+      const params = {
+        topic_id: this.row.id,
+        source: this.createSourceForm.source,
+        url: this.createSourceForm.url
+      }
+      this.createSourceLoading = true
+      createEcosystemSource(params).then(() => {
+        this.createSourceLoading = false
+        this.createSourceVisible = false
+        this.getEcosystemSource()
       })
     }
   }

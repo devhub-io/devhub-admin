@@ -159,3 +159,34 @@ export function deleteEcosystemAttribute(params) {
     data: params
   })
 }
+
+export function crawlerEcosystemCollection(params) {
+  return request({
+    url: `/admin/ecosystem/collection/crawler`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function getEcosystemSource(params) {
+  return request({
+    url: `/admin/ecosystem/source`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function createEcosystemSource(params) {
+  return request({
+    url: `/admin/ecosystem/source/create`,
+    method: 'post',
+    data: params
+  })
+}
+export function deleteEcosystemSource(params) {
+  return request({
+    url: `/admin/ecosystem/source/delete`,
+    method: 'post',
+    data: params
+  })
+}

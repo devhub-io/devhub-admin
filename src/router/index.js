@@ -103,7 +103,7 @@ export const constantRouterMap = [
       { path: '/ecosystem/index', component: () => import('@/views/ecosystem/index'), name: 'ecosystems_index', meta: { title: 'List' }},
       { path: '/ecosystem/:id/collections', component: () => import('@/views/ecosystem/collections'), name: 'ecosystems_collections', meta: { title: 'Collections' }, hidden: true, noCache: true },
       { path: '/ecosystem/:id/import', component: () => import('@/views/ecosystem/import'), name: 'ecosystems_import', meta: { title: 'Import' }, hidden: true, noCache: true },
-      { path: '/dataset/articles', component: () => import('@/views/dataset/links'), name: 'linkss', meta: { title: 'Links' }}
+      { path: '/ecosystem/data', component: () => import('@/views/ecosystem/data'), name: 'ecosystems_data', meta: { title: 'Data' }}
     ]
   },
   {

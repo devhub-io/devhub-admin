@@ -6,6 +6,11 @@
 
 <script>
 export default{
-  name: 'App'
+  name: 'App',
+  mounted() {
+    this.$socket.on('message', msg => {
+      this.$notify(msg.data.payload)
+    })
+  }
 }
 </script>
