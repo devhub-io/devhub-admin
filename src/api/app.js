@@ -119,3 +119,27 @@ export function fetchLink(params) {
     data: params
   })
 }
+
+export function analyticsWebsite(params) {
+  return request({
+    url: `/admin/website/analytics`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function analyticsUser(params) {
+  return request({
+    url: `/admin/user/analytics`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function analyticsEcosystem(params) {
+  return request({
+    url: `/admin/ecosystem/analytics`,
+    method: 'get',
+    params: params
+  })
+}

@@ -1,7 +1,13 @@
 <template>
   <div class="dashboard-editor-container">
 
-    <panel-group @handleSetLineChartData="handleSetLineChartData"/>
+    <el-row>
+      <div>
+        {{ since | date }} - {{ until | date }}
+      </div>
+    </el-row>
+
+    <panel-group :users="users" :visitors="visitors" :views="views" :ecosystems="ecosystems" @handleSetLineChartData="handleSetLineChartData"/>
 
     <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
       <line-chart :chart-data="lineChartData"/>
@@ -10,15 +16,15 @@
     <el-row :gutter="32">
       <el-col :xs="24" :sm="24" :lg="8">
         <div class="chart-wrapper">
+          <pie-chart :chart-data="pieChartData"/>
+        </div>
+      </el-col>
+      <el-col v-if="false" :xs="24" :sm="24" :lg="8">
+        <div class="chart-wrapper">
           <raddar-chart/>
         </div>
       </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <pie-chart/>
-        </div>
-      </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
+      <el-col v-if="false" :xs="24" :sm="24" :lg="8">
         <div class="chart-wrapper">
           <bar-chart/>
         </div>
@@ -35,24 +41,35 @@ import PieChart from './components/PieChart'
 import BarChart from './components/BarChart'
 import TodoList from './components/TodoList'
 import BoxCard from './components/BoxCard'
+import { analyticsWebsite, analyticsEcosystem, analyticsUser } from '@/api/app'
+import moment from 'moment'
 
 const lineChartData = {
-  newVisitis: {
-    expectedData: [100, 120, 161, 134, 105, 160, 165],
-    actualData: [120, 82, 91, 154, 162, 140, 145]
+  users: {
+    actualData: [],
+    xAxis: [],
+    name: 'Users'
   },
-  messages: {
-    expectedData: [200, 192, 120, 144, 160, 130, 140],
-    actualData: [180, 160, 151, 106, 145, 150, 130]
+  visitors: {
+    actualData: [],
+    xAxis: [],
+    name: 'Visitors'
   },
-  purchases: {
-    expectedData: [80, 100, 121, 104, 105, 90, 100],
-    actualData: [120, 90, 100, 138, 142, 130, 130]
+  pageViews: {
+    actualData: [],
+    xAxis: [],
+    name: 'PageViews'
   },
-  shoppings: {
-    expectedData: [130, 140, 141, 142, 145, 150, 160],
-    actualData: [120, 82, 91, 154, 162, 140, 130]
+  empty: {
+    actualData: [],
+    xAxis: [],
+    name: 'Actual'
   }
+}
+const pieChartData = {
+  actualData: [],
+  xAxis: [],
+  name: 'Search Engine'
 }
 
 export default {
@@ -66,14 +83,78 @@ export default {
     TodoList,
     BoxCard
   },
+  filters: {
+    date(val) {
+      return moment(val).format('YYYY-MM-DD')
+    }
+  },
   data() {
     return {
-      lineChartData: lineChartData.newVisitis
+      lineChartData: lineChartData.users,
+      pieChartData: pieChartData,
+      websiteData: {},
+      users: 0,
+      views: 0,
+      visitors: 0,
+      ecosystems: 0,
+
+      since: '',
+      until: ''
     }
+  },
+  mounted() {
+    this.analyticsWebsite()
+    this.analyticsUser()
+    this.analyticsEcosystem()
   },
   methods: {
     handleSetLineChartData(type) {
       this.lineChartData = lineChartData[type]
+    },
+    analyticsWebsite() {
+      analyticsWebsite({}).then(res => {
+        this.websiteData = res
+        // LineChart
+        const xAxis = []
+        const pageViewsData = []
+        const uniquesData = []
+        this.websiteData.timeseries.forEach(item => {
+          xAxis.push(moment(item.since).format('MM-DD'))
+          uniquesData.push(item.uniques.all)
+          pageViewsData.push(item.pageviews.all)
+        })
+        lineChartData.visitors.actualData = uniquesData
+        lineChartData.visitors.xAxis = xAxis
+        lineChartData.pageViews.actualData = pageViewsData
+        lineChartData.pageViews.xAxis = xAxis
+        this.lineChartData = lineChartData.visitors
+        // Total
+        this.visitors = this.websiteData.totals.uniques.all
+        this.views = this.websiteData.totals.pageviews.all
+        // Date
+        this.since = this.websiteData.totals.since
+        this.until = this.websiteData.totals.until
+        // PieChart
+        this.pieChartData.xAxis = Object.keys(this.websiteData.totals.pageviews.search_engine)
+        const pieData = []
+        Object.keys(this.websiteData.totals.pageviews.search_engine).forEach(key => {
+          pieData.push({
+            name: key,
+            value: this.websiteData.totals.pageviews.search_engine[key]
+          })
+        })
+        this.pieChartData.actualData = pieData
+      })
+    },
+    analyticsUser() {
+      analyticsUser({}).then(res => {
+        this.users = res.count
+      })
+    },
+    analyticsEcosystem() {
+      analyticsEcosystem({}).then(res => {
+        this.ecosystems = res.count
+      })
     }
   }
 }
