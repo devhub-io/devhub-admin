@@ -143,3 +143,27 @@ export function analyticsEcosystem(params) {
     params: params
   })
 }
+
+export function getFeedback(params) {
+  return request({
+    url: `/admin/feedback`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function switchFeedback(params) {
+  return request({
+    url: `/admin/feedback/switch`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function deleteFeedback(params) {
+  return request({
+    url: `/admin/feedback/delete`,
+    method: 'post',
+    data: params
+  })
+}

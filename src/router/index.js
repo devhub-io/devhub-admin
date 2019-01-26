@@ -125,7 +125,8 @@ export const constantRouterMap = [
     meta: { title: 'System', icon: 'component' },
     children: [
       { path: '/queue_jobs', component: () => import('@/views/system/queue_jobs'), name: 'queue_jobs', meta: { title: 'Queue' }},
-      { path: '/users', component: () => import('@/views/user/users'), name: 'users', meta: { title: 'Users' }}
+      { path: '/users', component: () => import('@/views/user/users'), name: 'users', meta: { title: 'Users' }},
+      { path: '/feedback', component: () => import('@/views/system/feedback'), name: 'feedback', meta: { title: 'Feedback' }}
     ]
   }
 ]
