@@ -183,9 +183,18 @@ export function createEcosystemSource(params) {
     data: params
   })
 }
+
 export function deleteEcosystemSource(params) {
   return request({
     url: `/admin/ecosystem/source/delete`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function fetchEcosystemSource(params) {
+  return request({
+    url: `/admin/ecosystem/source/fetch`,
     method: 'post',
     data: params
   })

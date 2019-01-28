@@ -261,7 +261,9 @@ export default {
       this.editVisible = true
     },
     fetch(url) {
-      fetchLink({ url: url }).then(() => {})
+      fetchLink({ url: url }).then(() => {
+        this.$message({ type: 'success', message: 'Add #LinkFetch job' })
+      })
     }
   }
 }

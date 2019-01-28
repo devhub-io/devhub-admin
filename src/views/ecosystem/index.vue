@@ -219,6 +219,13 @@
                 <el-button
                   type="text"
                   size="mini"
+                  class="color-blue"
+                  @click="sourceFetch(item)">
+                  Fetch
+                </el-button>
+                <el-button
+                  type="text"
+                  size="mini"
                   class="color-red"
                   @click="confirmSourceDelete(item)">
                   Delete
@@ -263,7 +270,8 @@ import {
   deleteEcosystemAttribute,
   getEcosystemSource,
   createEcosystemSource,
-  deleteEcosystemSource
+  deleteEcosystemSource,
+  fetchEcosystemSource
 } from '@/api/ecosystem'
 
 export default {
@@ -553,6 +561,11 @@ export default {
         this.createSourceLoading = false
         this.createSourceVisible = false
         this.getEcosystemSource()
+      })
+    },
+    sourceFetch(item) {
+      fetchEcosystemSource({ id: item.id }).then(() => {
+        this.$message({ type: 'success', message: 'Add #AwesomeListFetch job' })
       })
     }
   }

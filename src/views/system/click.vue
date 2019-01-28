@@ -4,27 +4,11 @@
     <!--Tools-->
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form ref="searchForm" :model="searchForm" :inline="true" >
-        <el-form-item label="Title" prop="title">
-          <el-input v-model="searchForm.title" placeholder="Input..."/>
-        </el-form-item>
-        <el-form-item label="Post Date" prop="post_date">
-          <el-date-picker
-            v-model="searchForm.post_date"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="Date"/>
-        </el-form-item>
-        <el-form-item label="Status" prop="status">
-          <el-select v-model="searchForm.status" clearable placeholder="Select...">
-            <el-option
-              v-for="item in status_lists"
-              :key="item.value"
-              :label="item.name"
-              :value="item.value"/>
-          </el-select>
+        <el-form-item label="Target" prop="target">
+          <el-input v-model="searchForm.target" type="url" placeholder="http://"/>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="el-icon-search" @click="getNews">Query</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="getClick">Query</el-button>
         </el-form-item>
         <el-form-item>
           <el-button @click="resetForm('searchForm')">Clear</el-button>
@@ -51,29 +35,20 @@
     <el-table v-loading="tableLoading" ref="multipleTable" :data="list" stripe style="width: 100%" @select="handleSelect" @select-all="handleSelectAll">
       <el-table-column type="selection" width="50"/>
       <el-table-column prop="id" label="#" width="100" />
-      <el-table-column prop="title" label="Title" width="200" />
-      <el-table-column prop="post_date" label="Post Date" width="100" />
-      <el-table-column prop="url" label="Url" width="200" />
-      <el-table-column prop="statistics" label="Statistics" width="100">
-        <template slot-scope="scope">
-          <div>-</div>
-        </template>
-      </el-table-column>
+      <el-table-column prop="target" label="target" width="200" />
+      <el-table-column prop="referer" label="referer" width="200" />
+      <el-table-column prop="ip" label="ip" width="150" />
+      <el-table-column prop="user_agent" label="UserAgent" width="250" />
       <el-table-column prop="time" label="Time" width="200">
         <template slot-scope="scope">
-          <div>updated_at</div>
-          <div>{{ scope.row.updated_at }}</div>
-          <div>created_at</div>
-          <div>{{ scope.row.created_at || '--' }}</div>
+          <div>clicked_at</div>
+          <div>{{ scope.row.clicked_at }}</div>
         </template>
       </el-table-column>
-      <el-table-column :formatter="formatStatus" prop="status" label="Status" align="center" width="100"/>
       <el-table-column label="Operating" fixed="right" width="250">
         <template slot-scope="scope">
           <el-button-group>
-            <el-button size="small" @click="preview(scope.row.url)">Preview</el-button>
-            <el-button size="small" @click="fetch(scope.row.url)">Fetch</el-button>
-            <el-button size="small" @click="showEdit(scope.row)">Edit</el-button>
+            <el-button size="small" @click="preview(scope.row.target)">Preview</el-button>
           </el-button-group>
         </template>
       </el-table-column>
@@ -107,7 +82,7 @@
 </template>
 
 <script>
-import { getNews, switchDeveloper, editDeveloper, fetchLink } from '@/api/app'
+import { getClick, switchDeveloper, editDeveloper, fetchLink } from '@/api/app'
 
 export default {
   data() {
@@ -119,16 +94,13 @@ export default {
         { value: 2, name: 'Delete' }
       ],
       sort_type: [
-        { value: 'sort', name: 'sort' },
-        { value: 'created_at', name: 'created_at' },
-        { value: 'updated_at', name: 'updated_at' }
+        { value: 'id', name: 'id' },
+        { value: 'clicked_at', name: 'clicked_at' }
       ],
 
       // search
       searchForm: {
-        title: '',
-        post_date: '',
-        status: ''
+        target: ''
       },
 
       // sort
@@ -156,7 +128,7 @@ export default {
     }
   },
   mounted() {
-    this.getNews()
+    this.getClick()
   },
   methods: {
 
@@ -165,7 +137,7 @@ export default {
     },
 
     sort() {
-      this.getNews()
+      this.getClick()
     },
 
     formatStatus(row) {
@@ -197,32 +169,26 @@ export default {
           status: 1
         }
         switchDeveloper(params).then(() => {
-          this.getNews()
+          this.getClick()
         })
       }
     },
 
     // List
-    getNews: function() {
+    getClick: function() {
       const param = {
         page: this.page,
         limit: this.pageSize
       }
-      if (this.searchForm.title !== '') {
-        param.title = this.searchForm.title
-      }
-      if (this.searchForm.status !== '') {
-        param.status = this.searchForm.status
-      }
-      if (this.searchForm.post_date !== '') {
-        param.post_date = this.searchForm.post_date
+      if (this.searchForm.target !== '') {
+        param.target = this.searchForm.target
       }
       if (this.sortForm.sort_type !== '') {
         param.sort_type = this.sortForm.sort_type
       }
 
       this.tableLoading = true
-      getNews(param).then(res => {
+      getClick(param).then(res => {
         this.list = res.rows
         this.total = res.count
         this.tableLoading = false
@@ -232,13 +198,13 @@ export default {
     handleSizeChange: function(size) {
       this.pageSize = size
       if ((this.page - 1) * size <= this.total) {
-        this.getNews()
+        this.getClick()
       }
     },
 
     handleCurrentChange: function(page) {
       this.page = page
-      this.getNews()
+      this.getClick()
     },
 
     resetForm(formName) {
@@ -246,7 +212,7 @@ export default {
       this.page = 1
       this.tableSelections = []
       this.$refs[formName].resetFields()
-      this.getNews()
+      this.getClick()
     },
 
     editSubmit() {
@@ -257,7 +223,7 @@ export default {
         }
         editDeveloper(params).then(() => {
           this.editVisible = false
-          this.getNews()
+          this.getClick()
         })
       }
     },
@@ -268,7 +234,7 @@ export default {
     },
     fetch(url) {
       fetchLink({ url: url }).then(() => {
-        this.$message({ type: 'success', message: 'Add #ReposFetch job' })
+        this.$message({ type: 'success', message: 'Add #LinkFetch job' })
       })
     }
   }

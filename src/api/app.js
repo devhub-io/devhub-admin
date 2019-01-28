@@ -48,6 +48,22 @@ export function getArticles(params) {
   })
 }
 
+export function getClick(params) {
+  return request({
+    url: `/admin/click`,
+    method: 'get',
+    params: params
+  })
+}
+
+export function getVote(params) {
+  return request({
+    url: `/admin/vote`,
+    method: 'get',
+    params: params
+  })
+}
+
 export function getRepos(params) {
   return request({
     url: `/admin/repos`,

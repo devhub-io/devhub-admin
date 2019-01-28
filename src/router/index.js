@@ -126,7 +126,9 @@ export const constantRouterMap = [
     children: [
       { path: '/queue_jobs', component: () => import('@/views/system/queue_jobs'), name: 'queue_jobs', meta: { title: 'Queue' }},
       { path: '/users', component: () => import('@/views/user/users'), name: 'users', meta: { title: 'Users' }},
-      { path: '/feedback', component: () => import('@/views/system/feedback'), name: 'feedback', meta: { title: 'Feedback' }}
+      { path: '/feedback', component: () => import('@/views/system/feedback'), name: 'feedback', meta: { title: 'Feedback' }},
+      { path: '/click', component: () => import('@/views/system/click'), name: 'click', meta: { title: 'Click' }},
+      { path: '/vote', component: () => import('@/views/system/vote'), name: 'vote', meta: { title: 'Vote' }}
     ]
   }
 ]
