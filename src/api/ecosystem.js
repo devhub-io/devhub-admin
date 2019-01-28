@@ -104,9 +104,9 @@ export function deleteEcosystemCollectionItem(params) {
   })
 }
 
-export function fetchEcosystemCollection(params) {
+export function importEcosystemCollection(params) {
   return request({
-    url: `/admin/ecosystem/collection/fetch`,
+    url: `/admin/ecosystem/collection/import`,
     method: 'post',
     data: params
   })

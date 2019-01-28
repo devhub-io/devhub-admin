@@ -19,7 +19,7 @@
 
 <script>
 import {
-  fetchEcosystemCollection
+  importEcosystemCollection
 } from '@/api/ecosystem'
 
 export default {
@@ -40,7 +40,7 @@ export default {
   methods: {
     click() {
       this.loading = true
-      fetchEcosystemCollection({ url: this.url, text: this.text, topic_id: this.topic_id }).then(res => {
+      importEcosystemCollection({ url: this.url, text: this.text, topic_id: this.topic_id }).then(res => {
         this.res = res
         this.loading = false
       })
