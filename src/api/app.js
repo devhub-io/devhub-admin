@@ -120,11 +120,41 @@ export function replayQueueJob(params) {
   })
 }
 
+export function replayAllQueueJob() {
+  return request({
+    url: `/admin/queue/replay/all`,
+    method: 'post'
+  })
+}
+
 export function deleteQueueJob(params) {
   return request({
     url: `/admin/queue/delete`,
     method: 'post',
     data: params
+  })
+}
+
+export function cleanQueueBullJob(params) {
+  return request({
+    url: `/admin/queue/bull/clean`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function cleanSystemQueue(params) {
+  return request({
+    url: `/admin/queue/system/clean`,
+    method: 'post',
+    data: params
+  })
+}
+
+export function getQueueBullCounts() {
+  return request({
+    url: `/admin/queue/bull/counts`,
+    method: 'get'
   })
 }
 

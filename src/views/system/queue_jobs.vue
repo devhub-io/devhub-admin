@@ -2,7 +2,7 @@
   <div class="app-container">
 
     <!--Tools-->
-    <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+    <el-row :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form ref="searchForm" :model="searchForm" :inline="true" >
         <el-form-item label="Queue" prop="queue">
           <el-input v-model="searchForm.queue" placeholder="Input..."/>
@@ -13,11 +13,29 @@
         <el-form-item>
           <el-button @click="resetForm('searchForm')">Clear</el-button>
         </el-form-item>
+        <el-form-item>
+          <el-button @click="cleanBull('failed')">Clean Bull #FailedJob</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="cleanBull('completed')">Clean Bull #CompletedJob</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="warning" @click="cleanBull('all')">Clean Bull #AllJob</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button v-loading="cleanLoading" @click="cleanSystemQueue('failed')">Clean System #FailedJob</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button v-loading="cleanLoading" @click="cleanSystemQueue('repeat')">Clean System #RepeatJob</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button v-loading="replayAllLoading" @click="replayAllJob()">Replay All</el-button>
+        </el-form-item>
       </el-form>
-    </el-col>
+    </el-row>
 
     <!--Sort-->
-    <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+    <el-row :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form ref="sortForm" :model="sortForm" :inline="true" >
         <el-form-item label="Sort" prop="sort_type">
           <el-select v-model="sortForm.sort_type" clearable placeholder="Select..." @change="sort">
@@ -29,7 +47,12 @@
           </el-select>
         </el-form-item>
       </el-form>
-    </el-col>
+    </el-row>
+
+    <!--Counts-->
+    <el-row v-if="Object.keys(counts).length > 0" :span="24" class="counts">
+      <el-col v-for="(v, k) in counts" :key="`c_${k}`" :span="4" align="center">{{ k }}: {{ v }}</el-col>
+    </el-row>
 
     <!--List-->
     <el-table v-loading="tableLoading" ref="multipleTable" :data="list" stripe style="width: 100%" @select="handleSelect" @select-all="handleSelectAll">
@@ -67,14 +90,22 @@
 
     <!--Pagination-->
     <el-col :span="24" class="toolbar">
-      <el-button size="mini" type="primary" style="float: left;" @click="batchCheck()">Enable</el-button>
+      <el-button size="mini" type="primary" style="float: left;" @click="batchCheck()">Replay</el-button>
       <el-pagination :page-sizes="[10, 20, 30, 40, 50, 100]" :page-size="pageSize" :total="total" layout="total, sizes, prev, pager, next" style="float:right" @size-change="handleSizeChange" @current-change="handleCurrentChange"/>
     </el-col>
   </div>
 </template>
 
 <script>
-import { getQueueJobs, replayQueueJob, deleteQueueJob } from '@/api/app'
+import {
+  getQueueJobs,
+  replayQueueJob,
+  deleteQueueJob,
+  getQueueBullCounts,
+  cleanQueueBullJob,
+  cleanSystemQueue,
+  replayAllQueueJob
+} from '@/api/app'
 
 export default {
   data() {
@@ -112,11 +143,22 @@ export default {
       },
       editVisible: false,
       editLoading: false,
-      editRow: {}
+      editRow: {},
+
+      counts: {},
+      cleanLoading: false,
+      replayAllLoading: false,
+      intervalHandle: null
     }
   },
   mounted() {
     this.getQueueJobs()
+    this.intervalHandle = setInterval(() => {
+      this.getQueueBullCounts()
+    }, 2000)
+  },
+  beforeDestroy() {
+    clearInterval(this.intervalHandle)
   },
   methods: {
 
@@ -128,33 +170,29 @@ export default {
       this.getQueueJobs()
     },
 
-    handleSelect: function(selection, row) {
+    handleSelect(selection, row) {
       this.tableSelections = selection
     },
 
-    handleSelectAll: function(selection) {
+    handleSelectAll(selection) {
       this.tableSelections = selection
     },
 
     // batch
-    batchCheck: function() {
+    batchCheck() {
       const id = []
       this.tableSelections.forEach(i => {
         id.push(i.id)
       })
       if (id.length > 0) {
-        // const params = {
-        //   id,
-        //   status: 1
-        // }
-        // switchDeveloper(params).then(() => {
-        //   this.getQueueJobs()
-        // })
+        replayQueueJob({ id: id }).then(() => {
+          this.getQueueJobs()
+        })
       }
     },
 
     // List
-    getQueueJobs: function() {
+    getQueueJobs() {
       const param = {
         page: this.page,
         limit: this.pageSize
@@ -173,15 +211,20 @@ export default {
         this.tableLoading = false
       })
     },
+    getQueueBullCounts() {
+      getQueueBullCounts().then(res => {
+        this.counts = res
+      })
+    },
 
-    handleSizeChange: function(size) {
+    handleSizeChange(size) {
       this.pageSize = size
       if ((this.page - 1) * size <= this.total) {
         this.getQueueJobs()
       }
     },
 
-    handleCurrentChange: function(page) {
+    handleCurrentChange(page) {
       this.page = page
       this.getQueueJobs()
     },
@@ -193,26 +236,8 @@ export default {
       this.$refs[formName].resetFields()
       this.getQueueJobs()
     },
-
-    editSubmit() {
-      if (this.editForm.status !== '') {
-        // const params = {
-        //   id: this.editRow.id,
-        //   status: this.editForm.status
-        // }
-        // editDeveloper(params).then(() => {
-        //   this.editVisible = false
-        //   this.getQueueJobs()
-        // })
-      }
-    },
-    showEdit(row) {
-      this.editForm.status = ''
-      this.editRow = row
-      this.editVisible = true
-    },
     replayJob(id) {
-      replayQueueJob({ id: id }).then(() => {
+      replayQueueJob({ id: [id] }).then(() => {
         this.getQueueJobs()
       })
     },
@@ -226,11 +251,50 @@ export default {
           this.getQueueJobs()
         })
       })
+    },
+    cleanBull(type) {
+      this.$confirm(`Confirm clean Bull ${type} Job?`, 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        cleanQueueBullJob({ type }).then(() => {
+          this.$message({ type: 'success', message: 'Clean' })
+          this.getQueueBullCounts()
+        })
+      })
+    },
+    cleanSystemQueue(type) {
+      this.$confirm(`Confirm clean System ${type} Job?`, 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        this.cleanLoading = true
+        cleanSystemQueue({ type }).then(() => {
+          this.$message({ type: 'success', message: 'Clean' })
+          this.cleanLoading = false
+          this.getQueueJobs()
+        })
+      })
+    },
+    replayAllJob() {
+      this.replayAllLoading = true
+      replayAllQueueJob().then(() => {
+        this.$message({ type: 'success', message: 'Replay All' })
+        this.replayAllLoading = false
+        this.getQueueBullCounts()
+        this.getQueueJobs()
+      })
     }
   }
 }
 </script>
 
 <style scoped>
-
+  .counts {
+    margin-top: 10px;
+    margin-bottom: 30px;
+    color: #606266;
+  }
 </style>
