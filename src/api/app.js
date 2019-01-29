@@ -213,3 +213,17 @@ export function deleteFeedback(params) {
     data: params
   })
 }
+
+export function enableAllRepos() {
+  return request({
+    url: `/admin/repos/enable`,
+    method: 'post'
+  })
+}
+
+export function enableAllDevelopers() {
+  return request({
+    url: `/admin/developer/enable`,
+    method: 'post'
+  })
+}

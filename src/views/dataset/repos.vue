@@ -22,6 +22,9 @@
         <el-form-item>
           <el-button @click="resetForm('searchForm')">Clear</el-button>
         </el-form-item>
+        <el-form-item>
+          <el-button v-loading="enableAllLoading" @click="enableAll">#EnableAll (Unless Delete)</el-button>
+        </el-form-item>
       </el-form>
     </el-col>
 
@@ -108,7 +111,7 @@
 </template>
 
 <script>
-import { getRepos, switchRepos, editRepos, fetchLink } from '@/api/app'
+import { getRepos, switchRepos, editRepos, fetchLink, enableAllRepos } from '@/api/app'
 
 export default {
   data() {
@@ -153,7 +156,9 @@ export default {
       },
       editVisible: false,
       editLoading: false,
-      editRow: {}
+      editRow: {},
+
+      enableAllLoading: false
     }
   },
   mounted() {
@@ -271,6 +276,13 @@ export default {
     fetch(url) {
       fetchLink({ url: url }).then(() => {
         this.$message({ type: 'success', message: 'Add #ReposFetch job' })
+      })
+    },
+    enableAll() {
+      this.enableAllLoading = true
+      enableAllRepos().then(() => {
+        this.enableAllLoading = false
+        this.$message({ type: 'success', message: 'Enable all' })
       })
     }
   }

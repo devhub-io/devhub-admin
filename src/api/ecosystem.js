@@ -104,6 +104,14 @@ export function deleteEcosystemCollectionItem(params) {
   })
 }
 
+export function checkEcosystemCollectionItem(params) {
+  return request({
+    url: `/admin/ecosystem/collection/item/check`,
+    method: 'post',
+    data: params
+  })
+}
+
 export function importEcosystemCollection(params) {
   return request({
     url: `/admin/ecosystem/collection/import`,

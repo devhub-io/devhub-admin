@@ -25,6 +25,9 @@
         <el-form-item>
           <el-button type="primary" icon="el-icon-plus" @click="showCreate">Create</el-button>
         </el-form-item>
+        <el-form-item>
+          <el-button v-loading="checkCollectionItemsLoading" type="info" @click="checkCollectionItems">#CollectionItemsCheck</el-button>
+        </el-form-item>
       </el-form>
     </el-col>
 
@@ -271,7 +274,8 @@ import {
   getEcosystemSource,
   createEcosystemSource,
   deleteEcosystemSource,
-  fetchEcosystemSource
+  fetchEcosystemSource,
+  checkEcosystemCollectionItem
 } from '@/api/ecosystem'
 
 export default {
@@ -347,7 +351,9 @@ export default {
       createSourceForm: {
         source: '',
         url: ''
-      }
+      },
+
+      checkCollectionItemsLoading: false
     }
   },
   mounted() {
@@ -566,6 +572,13 @@ export default {
     sourceFetch(item) {
       fetchEcosystemSource({ id: item.id }).then(() => {
         this.$message({ type: 'success', message: 'Add #AwesomeListFetch job' })
+      })
+    },
+    checkCollectionItems() {
+      this.checkCollectionItemsLoading = true
+      checkEcosystemCollectionItem().then(() => {
+        this.checkCollectionItemsLoading = false
+        this.$message({ type: 'success', message: 'Check' })
       })
     }
   }
