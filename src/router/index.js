@@ -130,6 +130,19 @@ export const constantRouterMap = [
       { path: '/click', component: () => import('@/views/system/click'), name: 'click', meta: { title: 'Click' }},
       { path: '/vote', component: () => import('@/views/system/vote'), name: 'vote', meta: { title: 'Vote' }}
     ]
+  },
+  {
+    path: '/scrapyd',
+    component: Layout,
+    name: 'scrapyd',
+    redirect: '/scrapyd/jobs',
+    meta: { title: 'Scrapyd', icon: 'example' },
+    children: [
+      { path: '/scrapyd/jobs', component: () => import('@/views/scrapyd/jobs'), name: 'scrapyd_jobs', meta: { title: 'Jobs' }},
+      { path: '/scrapyd/spiders', component: () => import('@/views/scrapyd/spiders'), name: 'scrapyd_spiders', meta: { title: 'Spiders' }},
+      { path: '/scrapyd/project', component: () => import('@/views/scrapyd/project'), name: 'scrapyd_project', meta: { title: 'Project' }},
+      { path: '/scrapyd/server', component: () => import('@/views/scrapyd/server'), name: 'scrapyd_server', meta: { title: 'Server' }}
+    ]
   }
 ]
 

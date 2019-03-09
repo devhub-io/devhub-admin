@@ -1,8 +1,8 @@
 module.exports = {
   NODE_ENV: '"production"',
   ENV_CONFIG: '"prod"',
-  BASE_API: '"http://devhub-server.sysatom.com"',
-  WEB_URL: '"http://devhub-web.sysatom.com"',
-  ADMIN_URL: '"http://devhub-admin.sysatom.com"',
-  SOCKET_URL: '"ws://devhub-server.sysatom.com"',
+  BASE_API: '"https://api.devhub.io"',
+  WEB_URL: '"https://devhub.io"',
+  ADMIN_URL: '"https://admin.devhub.io"',
+  SOCKET_URL: '"ws://api.devhub.io"',
 }
