@@ -22,6 +22,7 @@ import './permission' // permission control
 // Socket.io
 import io from 'socket.io-client'
 const socket = io(process.env.SOCKET_URL, {
+  secure: true,
   query: {
     room: 'default',
     userId: `client_${Math.random()}`
